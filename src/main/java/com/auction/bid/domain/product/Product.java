@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.query.sqm.mutation.internal.temptable.AfterUseAction;
 
 import java.time.LocalDateTime;
 
@@ -35,10 +36,14 @@ public class Product extends BaseEntity {
     @Column(nullable = false)
     private LocalDateTime auctionEnd;
 
+    @Enumerated(EnumType.STRING)
+    private AuctionStatus auctionStatus;
 
-    private Enum auctionStatus;
-    private Enum auctionPhase;
+    @Enumerated(EnumType.STRING)
+    private AuctionPhase auctionPhase;
+
     private LocalDateTime createdAt;
+
     private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
