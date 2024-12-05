@@ -8,8 +8,6 @@ import lombok.NoArgsConstructor;
 
 @Embeddable
 @Getter
-@AllArgsConstructor
-@NoArgsConstructor
 public class Address {
 
     @NotEmpty
