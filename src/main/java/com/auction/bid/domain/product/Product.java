@@ -1,5 +1,6 @@
 package com.auction.bid.domain.product;
 
+import com.auction.bid.domain.category.Category;
 import com.auction.bid.domain.member.Member;
 import com.auction.bid.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -28,7 +29,7 @@ public class Product extends BaseEntity {
     private String description;
 
     @Column(nullable = false)
-    private int startBid;
+    private long startBid;
 
     @Column(nullable = false)
     private LocalDateTime auctionStart;
@@ -42,15 +43,11 @@ public class Product extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private AuctionPhase auctionPhase;
 
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    @OneToMany(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
