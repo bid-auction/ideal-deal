@@ -4,6 +4,7 @@ import com.auction.bid.domain.product.Product;
 import com.auction.bid.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class Photo extends BaseEntity {
@@ -23,9 +25,6 @@ public class Photo extends BaseEntity {
     @Column(nullable = false)
     private String filePath;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
 
 
 

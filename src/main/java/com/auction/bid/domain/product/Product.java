@@ -2,17 +2,22 @@ package com.auction.bid.domain.product;
 
 import com.auction.bid.domain.category.Category;
 import com.auction.bid.domain.member.Member;
+import com.auction.bid.domain.photo.Photo;
 import com.auction.bid.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.query.sqm.mutation.internal.temptable.AfterUseAction;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class Product extends BaseEntity {
@@ -50,5 +55,13 @@ public class Product extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
+
+    @OneToMany
+    @JoinColumn(name = "product_id")
+    private List<Photo> photo = new ArrayList<>();
+
+    public void addPhoto(Photo photo){
+        this.photo.add(photo);
+    }
 
 }

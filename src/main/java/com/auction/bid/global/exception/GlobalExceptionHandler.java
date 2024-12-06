@@ -1,8 +1,6 @@
 package com.auction.bid.global.exception;
 
-import com.auction.bid.global.exception.exceptions.AuthException;
-import com.auction.bid.global.exception.exceptions.MailException;
-import com.auction.bid.global.exception.exceptions.MemberException;
+import com.auction.bid.global.exception.exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -34,6 +32,26 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<String> handleException(Exception ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidAuctionStartTimeNowAfterException.class)
+    public ResponseEntity<String> handleInvalidAuctionEndTimeStartAfterException(InvalidAuctionStartTimeNowAfterException ex){
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidAuctionEndTimeStartAfterException.class)
+    public ResponseEntity<String> handleInvalidInvalidAuctionEndTimeStartAfterException(InvalidAuctionEndTimeStartAfterException ex){
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(FileUploadException.class)
+    public ResponseEntity<String> handleFileUploadException(FileUploadException ex){
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(DuplicateProductException.class)
+    public ResponseEntity<String> handleDuplicateProductException(DuplicateProductException ex){
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
