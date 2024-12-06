@@ -56,12 +56,4 @@ public class Product extends BaseEntity {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
-    @OneToMany
-    @JoinColumn(name = "product_id")
-    private List<Photo> photo = new ArrayList<>();
-
-    public void addPhoto(Photo photo){
-        this.photo.add(photo);
-    }
-
 }

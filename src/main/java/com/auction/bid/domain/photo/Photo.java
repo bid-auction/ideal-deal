@@ -25,8 +25,13 @@ public class Photo extends BaseEntity {
     @Column(nullable = false)
     private String filePath;
 
+    @ManyToOne
+    @JoinColumn(name="product_id", nullable = false)
+    private Product product;
 
 
-
-
+    public Photo(String dbFilePath, Product product) {
+        this.filePath = dbFilePath;
+        this.product = product;
+    }
 }

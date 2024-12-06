@@ -35,23 +35,8 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(InvalidAuctionStartTimeNowAfterException.class)
-    public ResponseEntity<String> handleInvalidAuctionEndTimeStartAfterException(InvalidAuctionStartTimeNowAfterException ex){
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(InvalidAuctionEndTimeStartAfterException.class)
-    public ResponseEntity<String> handleInvalidInvalidAuctionEndTimeStartAfterException(InvalidAuctionEndTimeStartAfterException ex){
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(FileUploadException.class)
-    public ResponseEntity<String> handleFileUploadException(FileUploadException ex){
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(DuplicateProductException.class)
-    public ResponseEntity<String> handleDuplicateProductException(DuplicateProductException ex){
+    @ExceptionHandler(ProductException.class)
+    public ResponseEntity<String> handleProductException(ProductException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 

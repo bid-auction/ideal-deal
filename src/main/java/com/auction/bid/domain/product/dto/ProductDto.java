@@ -10,8 +10,10 @@ import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class ProductDto {
 
@@ -29,7 +31,7 @@ public class ProductDto {
         private String description;
 
         @NotEmpty(message = "상품 사진은 필수입니다.")
-        private String filePath;
+        private List<MultipartFile> filePath;
 
         @NotEmpty(message = "경매 시작가는 필수입니다.")
         private long startBid;
@@ -48,12 +50,6 @@ public class ProductDto {
                     .auctionStart(request.auctionStart)
                     .auctionEnd(request.auctionEnd)
                     .build();
-
-            Photo photo = Photo.builder()
-                    .filePath(request.filePath)
-                    .build();
-            product.addPhoto(photo);
-
             return product;
         }
     }
