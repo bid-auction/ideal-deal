@@ -59,7 +59,7 @@ public class ProductServiceImpl implements ProductService {
                 photoRepository.save(photo);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new ProductException(ErrorCode.FILE_UPLOAD_FAILED);
         }
     }
 
