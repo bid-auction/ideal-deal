@@ -42,6 +42,9 @@ public class ProductDto {
         @NotNull(message = "상품 종료일은 필수입니다.")
         private LocalDateTime auctionEnd;
 
+        @NotEmpty(message = "카테고리 선택은 필수입니다.")
+        private String category;
+
         public static Product toEntity(Request request){
             Product product =  Product.builder()
                     .title(request.title)

@@ -25,7 +25,7 @@ public class Photo extends BaseEntity {
     @Column(nullable = false)
     private String filePath;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name="product_id", nullable = false)
     private Product product;
 

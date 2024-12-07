@@ -52,8 +52,28 @@ public class Product extends BaseEntity {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY,
+            cascade = CascadeType.PERSIST)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
+    private void setMember(Member member) {
+        this.member = member;
+    }
+
+    public void assingMember(Member member){
+        if(this.member == null){
+            setMember(member);
+        }
+    }
+
+    private void setCategory(Category category) {
+        this.category = category;
+    }
+
+    public void assingCategory(Category category){
+        if(this.category == null){
+            setCategory(category);
+        }
+    }
 }

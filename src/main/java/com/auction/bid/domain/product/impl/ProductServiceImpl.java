@@ -1,8 +1,11 @@
 package com.auction.bid.domain.product.impl;
 
+import com.auction.bid.domain.category.Category;
+import com.auction.bid.domain.member.MemberRepository;
 import com.auction.bid.domain.photo.Photo;
 import com.auction.bid.domain.product.Product;
 import com.auction.bid.domain.product.dto.ProductDto;
+import com.auction.bid.domain.product.repository.CategoryRepository;
 import com.auction.bid.domain.product.repository.PhotoRepository;
 import com.auction.bid.domain.product.repository.ProductRepository;
 import com.auction.bid.domain.product.service.ProductService;
@@ -28,6 +31,10 @@ public class ProductServiceImpl implements ProductService {
 
     private final PhotoRepository photoRepository;
 
+    private final MemberRepository memberRepository;
+
+    private final CategoryRepository categoryRepository;
+
     @Override
     public ProductDto.Response register(ProductDto.Request request){
 
@@ -42,7 +49,15 @@ public class ProductServiceImpl implements ProductService {
             throw new ProductException(ErrorCode.INVALID_AUCTION_END_TIME_START_AFTER);
         }
 
+        // Dto에서 email을 받지 않고 있음. 회원을 구분할 수 있는것을 받아야함.
+        // 아니면 토큰으로 기억되어서 그 정보를 넘겨주던가.
         Product product =  ProductDto.Request.toEntity(request);
+        product.assingMember(memberRepository.findById(1L).orElseThrow(
+                () -> new IllegalArgumentException("멤버 값이 현재 없습니다.")));
+
+        product.assingCategory(categoryRepository.findByCategoryName(request.getCategory()).orElseThrow(
+                () -> new IllegalArgumentException("카테고리 값이 현재 없습니다.")));
+
         uploadPhoto(product, request.getFilePath());
         return ProductDto.Response.fromEntity(productRepository.save(product));
 

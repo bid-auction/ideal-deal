@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 
 @Embeddable
 @Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Address {
 
     @NotEmpty
@@ -18,5 +20,4 @@ public class Address {
 
     @NotEmpty
     private String zipcode;
-
 }
