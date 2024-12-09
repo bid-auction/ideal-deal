@@ -1,8 +1,6 @@
 package com.auction.bid.domain.member;
 
-import com.auction.bid.domain.member.dto.EmailDto;
 import com.auction.bid.domain.member.dto.SignUpDto;
-import org.springframework.http.ResponseEntity;
 
 public interface MemberService {
 

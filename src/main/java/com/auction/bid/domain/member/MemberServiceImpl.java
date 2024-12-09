@@ -1,13 +1,14 @@
 package com.auction.bid.domain.member;
 
-import com.auction.bid.global.exception.exceptions.AuthException;
-import com.auction.bid.global.exception.exceptions.MailException;
-import com.auction.bid.global.security.ConstSecurity;
-import com.auction.bid.global.security.jwt.JWTUtil;
-import jakarta.mail.MessagingException;
 import com.auction.bid.domain.member.dto.SignUpDto;
 import com.auction.bid.global.exception.ErrorCode;
+import com.auction.bid.global.exception.exceptions.AuthException;
+import com.auction.bid.global.exception.exceptions.MailException;
 import com.auction.bid.global.exception.exceptions.MemberException;
+import com.auction.bid.global.security.ConstSecurity;
+import com.auction.bid.global.security.RefreshTokenRepository;
+import com.auction.bid.global.security.jwt.JWTUtil;
+import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -15,6 +16,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -22,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class MemberServiceImpl implements MemberService{
 
     private final MemberRepository memberRepository;
@@ -29,6 +32,7 @@ public class MemberServiceImpl implements MemberService{
     private final JavaMailSender mailSender;
     private final JWTUtil jwtUtil;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Override
     public SignUpDto.Response signUp(SignUpDto.Request request) {
@@ -36,7 +40,7 @@ public class MemberServiceImpl implements MemberService{
             throw new MailException(ErrorCode.EMAIL_NOT_VERIFIED);
         }
 
-        if (memberRepository.existsByEmail(request.getEmail())) {
+        if (memberRepository.existsByLoginId(request.getLoginId())) {
             throw new MemberException(ErrorCode.ALREADY_EXIST_EMAIL);
         }
 
@@ -88,9 +92,12 @@ public class MemberServiceImpl implements MemberService{
             throw new AuthException(ErrorCode.INVALID_TOKEN);
         }
 
-        String jwtToken = token.replace(ConstSecurity.BEARER, "");
-        redisTemplate.opsForValue().set(jwtToken, "blacklisted", 1, TimeUnit.DAYS);
-        return jwtUtil.getEmail(jwtToken);
+        String jwtToken = jwtUtil.getTokenFromHeader(token);
+        String memberId = jwtUtil.getMemberIdFromToken(jwtToken);
+        redisTemplate.opsForValue().set(jwtToken, ConstSecurity.BLACK_LIST, 1, TimeUnit.DAYS);
+        refreshTokenRepository.deleteByMemberId(UUID.fromString(memberId));
+
+        return memberId;
     }
 
 }
