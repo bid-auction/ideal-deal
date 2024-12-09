@@ -1,4 +1,4 @@
-package com.auction.bid.global.security.userdetails;
+package com.auction.bid.global.security.jwt.userdetails;
 
 import com.auction.bid.domain.member.Member;
 import com.auction.bid.domain.member.MemberRepository;
@@ -17,8 +17,8 @@ public class CustomUserDetailService implements UserDetailsService {
     private final MemberRepository memberRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Member findMember = memberRepository.findByEmail(email)
+    public UserDetails loadUserByUsername(String loginId) throws UsernameNotFoundException {
+        Member findMember = memberRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new MemberException(ErrorCode.NOT_EXIST_EMAIL));
 
         return new CustomUserDetails(findMember);

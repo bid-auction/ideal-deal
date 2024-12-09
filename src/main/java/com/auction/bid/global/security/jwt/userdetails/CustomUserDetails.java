@@ -1,4 +1,4 @@
-package com.auction.bid.global.security.userdetails;
+package com.auction.bid.global.security.jwt.userdetails;
 
 import com.auction.bid.domain.member.Member;
 import lombok.RequiredArgsConstructor;
@@ -7,6 +7,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 public class CustomUserDetails implements UserDetails {
@@ -27,11 +28,8 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public String getUsername() {
-        return member.getUsername();
+        return member.getName();
     }
 
-    public String getEmail() {
-        return member.getEmail();
-    }
-
+    public UUID getUUID() {return member.getMemberId();}
 }
