@@ -1,11 +1,13 @@
 package com.auction.bid.domain.product;
 
+import com.auction.bid.domain.category.Category;
 import com.auction.bid.domain.member.Member;
 import com.auction.bid.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.query.sqm.mutation.internal.temptable.AfterUseAction;
 
 import java.time.LocalDateTime;
 
@@ -27,7 +29,7 @@ public class Product extends BaseEntity {
     private String description;
 
     @Column(nullable = false)
-    private int startBid;
+    private long startBid;
 
     @Column(nullable = false)
     private LocalDateTime auctionStart;
@@ -35,17 +37,17 @@ public class Product extends BaseEntity {
     @Column(nullable = false)
     private LocalDateTime auctionEnd;
 
+    @Enumerated(EnumType.STRING)
+    private AuctionStatus auctionStatus;
 
-    private Enum auctionStatus;
-    private Enum auctionPhase;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    @Enumerated(EnumType.STRING)
+    private AuctionPhase auctionPhase;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    @OneToMany(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
