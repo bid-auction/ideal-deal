@@ -3,10 +3,23 @@ package com.auction.bid.domain.member;
 
 import com.auction.bid.global.entity.BaseEntity;
 import jakarta.persistence.*;
+<<<<<<< HEAD
 import lombok.Getter;
 
 @Entity
 @Getter
+=======
+import lombok.*;
+
+import java.util.UUID;
+
+@Entity
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter
+@Table(name = "member", indexes = @Index(name = "idx_provider_id", columnList = "provider_id"))
+>>>>>>> develop
 public class Member extends BaseEntity {
 
     @Id
@@ -14,17 +27,46 @@ public class Member extends BaseEntity {
     @Column(name = "member_id")
     private Long id;
 
-    private String email;
+    @Column(name = "member_uuid", columnDefinition = "BINARY(16)", unique = true)
+    private UUID memberId;
+
+    @Column(name = "name")
+    private String name;
+
+    @Column(name = "provider")
+    private String provider;
+
+    @Column(name = "provider_id")
+    private String providerId;
+
+    @Column(name = "login_id")
+    private String loginId;
+
+    @Column(name = "password")
     private String password;
+
+    @Column(name = "phone_number")
     private String phoneNumber;
+
+    @Column(name = "email")
+    private String email;
+
+    @Column(name = "nickname")
     private String nickname;
+<<<<<<< HEAD
+=======
+
+    @Column(name = "email_verified")
+    private boolean emailVerified;
+
+    @Column(name = "balance")
+    private int balance;
+
+    @Column(name = "role")
+    private String role;
+>>>>>>> develop
 
     @Embedded
     private Address address;
 
-    private boolean emailVerified;
-    private boolean phoneVerified;
-
-    private int balance;
-    private String role;
 }
