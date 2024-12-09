@@ -7,8 +7,8 @@ import lombok.Getter;
 @Getter
 public class LoginDto {
 
-    @Email(message = "유효한 이메일을 입력하세요.")
-    private String email;
+    @NotEmpty(message = "아이디를 입력하세요.")
+    private String loginId;
 
     @NotEmpty(message = "비밀번호를 입력해주세요.")
     private String password;

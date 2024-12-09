@@ -8,4 +8,6 @@ public abstract class ConstSecurity {
     public static final String ROLE_ADMIN = "ROLE_ADMIN";
 
     public static final String HAS_ROLE_MEMBER = "hasRole('MEMBER')";
+
+    public static final String BLACK_LIST = "BLACK_LIST";
 }

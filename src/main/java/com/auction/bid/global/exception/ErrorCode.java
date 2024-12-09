@@ -10,6 +10,7 @@ public enum ErrorCode {
 
     // MemberException
     NOT_EXIST_EMAIL("이메일이 존재하지 않습니다.", HttpStatus.BAD_REQUEST),
+    NOT_EXIST_LOGIN_ID("해당 아이디가 존재하지 않습니다.", HttpStatus.BAD_REQUEST),
     ALREADY_EXIST_EMAIL("이미 존재하는 이메일입니다.", HttpStatus.BAD_REQUEST),
 
     // MailException
@@ -17,8 +18,11 @@ public enum ErrorCode {
     EMAIL_NOT_VERIFIED("메일을 인증하지 못했습니다.", HttpStatus.BAD_REQUEST),
 
     // AuthException
-    AUTHENTICATION_FAILED("인증에 실패했습니다..", HttpStatus.BAD_REQUEST),
+    AUTHENTICATION_FAILED("인증에 실패했습니다.", HttpStatus.BAD_REQUEST),
     TOKEN_NOT_FOUND("해당 토큰은 존재하지 않습니다.", HttpStatus.BAD_REQUEST),
+    ROLE_NOT_FOUND("역할 정보를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST),
+    ACCESS_DENIED("접근할 수 없습니다.", HttpStatus.BAD_REQUEST),
+    INVALID_ACCESS("잘못된 접근입니다.", HttpStatus.BAD_REQUEST),
     INVALID_TOKEN("유효하지 않은 토큰입니다.", HttpStatus.BAD_REQUEST);
 
 

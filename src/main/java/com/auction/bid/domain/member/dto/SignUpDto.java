@@ -8,6 +8,8 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.util.UUID;
+
 public class SignUpDto {
 
     @Builder
@@ -18,16 +20,19 @@ public class SignUpDto {
     public static class Request{
 
         @NotEmpty
-        private String email;
+        private String loginId;
 
         @NotEmpty
         private String password;
 
         @NotEmpty
+        private String email;
+
+        @NotEmpty
         private String nickname;
 
         @NotEmpty
-        private String username;
+        private String name;
 
         @NotEmpty
         private String phoneNumber;
@@ -42,13 +47,16 @@ public class SignUpDto {
 
         public static Member toEntity(Request request, String encodedPassword) {
             return Member.builder()
-                    .email(request.getEmail())
+                    .memberId(UUID.randomUUID())
+                    .loginId(request.getLoginId())
                     .password(encodedPassword)
-                    .nickname(request.nickname)
-                    .username(request.username)
-                    .phoneNumber(request.phoneNumber)
-                    .address(request.address)
+                    .email(request.getEmail())
+                    .nickname(request.getNickname())
+                    .name(request.getName())
+                    .phoneNumber(request.getPhoneNumber())
                     .emailVerified(true)
+                    .address(request.getAddress())
+                    .provider("simple")
                     .role(ConstSecurity.ROLE_MEMBER)
                     .build();
         }
@@ -59,13 +67,15 @@ public class SignUpDto {
     @Getter
     public static class Response {
         private Long id;
-        private String username;
+        private String loginId;
+        private String name;
         private String nickname;
 
         public static Response fromEntity(Member member) {
             return Response.builder()
                     .id(member.getId())
-                    .username(member.getUsername())
+                    .loginId(member.getLoginId())
+                    .name(member.getName())
                     .nickname(member.getNickname())
                     .build();
         }
