@@ -4,11 +4,12 @@ package com.auction.bid.domain.member;
 import com.auction.bid.global.entity.BaseEntity;
 import jakarta.persistence.*;
 <<<<<<< HEAD
-import lombok.Getter;
+import lombok.*;
+
+import java.util.UUID;
 
 @Entity
 @Getter
-=======
 import lombok.*;
 
 import java.util.UUID;
@@ -19,7 +20,6 @@ import java.util.UUID;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Table(name = "member", indexes = @Index(name = "idx_provider_id", columnList = "provider_id"))
->>>>>>> develop
 public class Member extends BaseEntity {
 
     @Id
@@ -53,8 +53,6 @@ public class Member extends BaseEntity {
 
     @Column(name = "nickname")
     private String nickname;
-<<<<<<< HEAD
-=======
 
     @Column(name = "email_verified")
     private boolean emailVerified;
@@ -64,7 +62,6 @@ public class Member extends BaseEntity {
 
     @Column(name = "role")
     private String role;
->>>>>>> develop
 
     @Embedded
     private Address address;

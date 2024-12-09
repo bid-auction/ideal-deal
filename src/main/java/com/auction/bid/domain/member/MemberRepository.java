@@ -1,12 +1,11 @@
 package com.auction.bid.domain.member;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface MemberRepository extends JpaRepository<Member, Long>{
+import java.util.Optional;
 
-<<<<<<< HEAD
-}
-=======
+
 @Repository
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
@@ -15,4 +14,4 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     Optional<Member> findByLoginId(String loginId);
 
 }
->>>>>>> develop
+

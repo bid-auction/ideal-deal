@@ -1,7 +1,6 @@
 package com.auction.bid.global.security.jwt.userdetails;
 
 import com.auction.bid.domain.member.Member;
-import com.auction.bid.domain.member.MemberRepository;
 import com.auction.bid.global.exception.ErrorCode;
 import com.auction.bid.global.exception.exceptions.MemberException;
 import lombok.RequiredArgsConstructor;
