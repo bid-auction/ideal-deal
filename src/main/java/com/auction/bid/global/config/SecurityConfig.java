@@ -1,12 +1,11 @@
-package com.auction.bid.global.security.config;
+package com.auction.bid.global.config;
 
-import com.auction.bid.global.security.ConstSecurity;
+import com.auction.bid.global.oauth2.CustomAuthenticationFailureHandler;
+import com.auction.bid.global.oauth2.CustomAuthenticationSuccessHandler;
 import com.auction.bid.global.security.RefreshTokenRepository;
 import com.auction.bid.global.security.jwt.JWTFilter;
 import com.auction.bid.global.security.jwt.JWTUtil;
 import com.auction.bid.global.security.jwt.LoginFilter;
-import com.auction.bid.global.security.oauth2.CustomAuthenticationFailureHandler;
-import com.auction.bid.global.security.oauth2.CustomAuthenticationSuccessHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
