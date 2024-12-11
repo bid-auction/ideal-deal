@@ -1,4 +1,4 @@
-package com.auction.bid.global.security.oauth2;
+package com.auction.bid.global.oauth2;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

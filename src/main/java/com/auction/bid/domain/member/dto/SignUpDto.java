@@ -19,25 +19,25 @@ public class SignUpDto {
     @AllArgsConstructor
     public static class Request{
 
-        @NotEmpty
+        @NotEmpty(message = "아이디를 입력해주세요.")
         private String loginId;
 
-        @NotEmpty
+        @NotEmpty(message = "비밀번호를 입력해주세요.")
         private String password;
 
-        @NotEmpty
+        @NotEmpty(message = "이메일을 입력해주세요.")
         private String email;
 
-        @NotEmpty
+        @NotEmpty(message = "닉네임을 입력해주세요.")
         private String nickname;
 
-        @NotEmpty
+        @NotEmpty(message = "이름을 입력해주세요.")
         private String name;
 
-        @NotEmpty
+        @NotEmpty(message = "휴대폰 번호를 입력해주세요.")
         private String phoneNumber;
 
-        @NotNull
+        @NotNull(message = "must not be null")
         private Boolean emailVerified;
 
         @Valid
@@ -64,6 +64,8 @@ public class SignUpDto {
     }
 
     @Builder
+    @AllArgsConstructor(access = AccessLevel.PROTECTED)
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
     @Getter
     public static class Response {
         private Long id;
