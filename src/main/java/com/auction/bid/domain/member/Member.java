@@ -3,13 +3,6 @@ package com.auction.bid.domain.member;
 
 import com.auction.bid.global.entity.BaseEntity;
 import jakarta.persistence.*;
-<<<<<<< HEAD
-import lombok.*;
-
-import java.util.UUID;
-
-@Entity
-@Getter
 import lombok.*;
 
 import java.util.UUID;

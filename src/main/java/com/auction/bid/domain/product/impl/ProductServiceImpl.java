@@ -1,5 +1,6 @@
 package com.auction.bid.domain.product.impl;
 
+import com.auction.bid.domain.member.MemberRepository;
 import com.auction.bid.domain.photo.Photo;
 import com.auction.bid.domain.product.Product;
 import com.auction.bid.domain.product.dto.ProductDto;

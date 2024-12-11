@@ -11,10 +11,5 @@ public class ProductException extends RuntimeException {
     public ProductException(ErrorCode errorCode){
         super(errorCode.getDescription());
         this.errorCode=errorCode;
-
-<<<<<<< HEAD:src/main/java/com/auction/bid/global/exception/exceptions/ProductException.java
     }
 }
-=======
-}
->>>>>>> develop:src/main/java/com/auction/bid/global/exception/exceptions/AuthException.java
