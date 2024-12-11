@@ -1,5 +1,8 @@
-package com.auction.bid.domain.member;
+package com.auction.bid.domain.member.controller;
 
+import com.auction.bid.domain.member.Address;
+import com.auction.bid.domain.member.MemberController;
+import com.auction.bid.domain.member.MemberService;
 import com.auction.bid.domain.member.dto.EmailDto;
 import com.auction.bid.domain.member.dto.SignUpDto;
 import com.auction.bid.domain.member.dto.TokenVerificationDto;

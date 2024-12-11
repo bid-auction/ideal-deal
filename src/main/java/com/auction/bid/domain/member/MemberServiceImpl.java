@@ -41,7 +41,7 @@ public class MemberServiceImpl implements MemberService{
         }
 
         if (memberRepository.existsByLoginId(request.getLoginId())) {
-            throw new MemberException(ErrorCode.ALREADY_EXIST_EMAIL);
+            throw new MemberException(ErrorCode.ALREADY_EXIST_LOGIN_ID);
         }
 
         String encodedPassword = bCryptPasswordEncoder.encode(request.getPassword());
