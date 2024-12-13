@@ -1,6 +1,5 @@
-package com.auction.bid.global.security.oauth2.userinfo;
+package com.auction.bid.global.oauth2.userinfo;
 
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Map;

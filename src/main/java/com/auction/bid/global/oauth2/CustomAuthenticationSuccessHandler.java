@@ -1,4 +1,4 @@
-package com.auction.bid.global.security.oauth2;
+package com.auction.bid.global.oauth2;
 
 import com.auction.bid.domain.member.Member;
 import com.auction.bid.domain.member.MemberRepository;
@@ -8,10 +8,10 @@ import com.auction.bid.global.security.ConstSecurity;
 import com.auction.bid.global.security.RefreshToken;
 import com.auction.bid.global.security.RefreshTokenRepository;
 import com.auction.bid.global.security.jwt.JWTUtil;
-import com.auction.bid.global.security.oauth2.userinfo.GoogleUserInfo;
-import com.auction.bid.global.security.oauth2.userinfo.KakaoUserInfo;
-import com.auction.bid.global.security.oauth2.userinfo.NaverUserInfo;
-import com.auction.bid.global.security.oauth2.userinfo.OAuth2UserInfo;
+import com.auction.bid.global.oauth2.userinfo.GoogleUserInfo;
+import com.auction.bid.global.oauth2.userinfo.KakaoUserInfo;
+import com.auction.bid.global.oauth2.userinfo.NaverUserInfo;
+import com.auction.bid.global.oauth2.userinfo.OAuth2UserInfo;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

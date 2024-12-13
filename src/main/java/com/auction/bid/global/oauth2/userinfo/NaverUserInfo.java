@@ -1,4 +1,4 @@
-package com.auction.bid.global.security.oauth2.userinfo;
+package com.auction.bid.global.oauth2.userinfo;
 
 import lombok.RequiredArgsConstructor;
 
