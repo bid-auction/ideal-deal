@@ -30,9 +30,6 @@ public class ProductDto {
         @NotEmpty(message = "상품 설명은 필수입니다.")
         private String description;
 
-        @NotEmpty(message = "상품 사진은 필수입니다.")
-        private List<MultipartFile> filePath;
-
         @NotEmpty(message = "경매 시작가는 필수입니다.")
         private long startBid;
 

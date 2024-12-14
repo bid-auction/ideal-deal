@@ -35,7 +35,7 @@ public class ProductServiceImpl implements ProductService {
     private final CategoryRepository categoryRepository;
 
     @Override
-    public ProductDto.Response register(UUID memberId, ProductDto.Request request){
+    public ProductDto.Response register( List<MultipartFile> images, ProductDto.Request request, UUID memberId){
 
         if (productRepository.existsByTitle(request.getTitle())){
             throw new ProductException(ErrorCode.DUPLICATE_PRODUCT);
@@ -57,7 +57,7 @@ public class ProductServiceImpl implements ProductService {
         product.assignCategory(categoryRepository.findByCategoryName(request.getCategory()).orElseThrow(
                 () -> new IllegalArgumentException("카테고리 값이 현재 없습니다.")));
 
-        uploadPhoto(product, request.getFilePath());
+        uploadPhoto(product, images);
         return ProductDto.Response.fromEntity(productRepository.save(product));
 
     }
