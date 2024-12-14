@@ -11,7 +11,7 @@ public enum ErrorCode {
     // MemberException
     NOT_EXIST_EMAIL("이메일이 존재하지 않습니다.", HttpStatus.BAD_REQUEST),
     NOT_EXIST_LOGIN_ID("해당 아이디가 존재하지 않습니다.", HttpStatus.BAD_REQUEST),
-    ALREADY_EXIST_EMAIL("이미 존재하는 이메일입니다.", HttpStatus.BAD_REQUEST),
+    ALREADY_EXIST_LOGIN_ID("이미 존재하는 아이디입니다.", HttpStatus.BAD_REQUEST),
 
     // MailException
     CAN_NOT_SEND_MAIL("메일을 전송하지 못했습니다.", HttpStatus.BAD_REQUEST),
