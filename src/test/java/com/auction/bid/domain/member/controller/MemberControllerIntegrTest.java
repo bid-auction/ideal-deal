@@ -1,5 +1,6 @@
-package com.auction.bid.domain.member;
+package com.auction.bid.domain.member.controller;
 
+import com.auction.bid.domain.member.Address;
 import com.auction.bid.domain.member.dto.EmailDto;
 import com.auction.bid.domain.member.dto.SignUpDto;
 import com.auction.bid.global.security.ConstSecurity;
@@ -62,7 +63,6 @@ class MemberControllerIntegrTest {
                 .name("resName")
                 .nickname("resNickName")
                 .build();
-
     }
 
     @Test

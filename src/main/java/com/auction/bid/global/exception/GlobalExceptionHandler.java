@@ -34,7 +34,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<List<String>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
         List<String> errors = ex.getBindingResult().getFieldErrors().stream()
-                .map(FieldError::getDefaultMessage) // 각 오류의 기본 메시지를 가져옵니다.
+                .map(FieldError::getDefaultMessage)
                 .toList();
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
