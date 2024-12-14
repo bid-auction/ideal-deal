@@ -35,7 +35,7 @@ public class ProductServiceImpl implements ProductService {
     private final CategoryRepository categoryRepository;
 
     @Override
-    public ProductDto.Response register(ProductDto.Request request){
+    public ProductDto.Response register(UUID memberId, ProductDto.Request request){
 
         if (productRepository.existsByTitle(request.getTitle())){
             throw new ProductException(ErrorCode.DUPLICATE_PRODUCT);
@@ -51,10 +51,10 @@ public class ProductServiceImpl implements ProductService {
         // Dto에서 email을 받지 않고 있음. 회원을 구분할 수 있는것을 받아야함.
         // 아니면 토큰으로 기억되어서 그 정보를 넘겨주던가.
         Product product =  ProductDto.Request.toEntity(request);
-        product.assingMember(memberRepository.findById(1L).orElseThrow(
+        product.assignMember(memberRepository.findByMemberId(memberId).orElseThrow(
                 () -> new IllegalArgumentException("멤버 값이 현재 없습니다.")));
 
-        product.assingCategory(categoryRepository.findByCategoryName(request.getCategory()).orElseThrow(
+        product.assignCategory(categoryRepository.findByCategoryName(request.getCategory()).orElseThrow(
                 () -> new IllegalArgumentException("카테고리 값이 현재 없습니다.")));
 
         uploadPhoto(product, request.getFilePath());

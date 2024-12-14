@@ -6,6 +6,8 @@ import org.hibernate.procedure.ProcedureOutputs;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 public interface ProductService {
-    ProductDto.Response register(ProductDto.Request request);
+    ProductDto.Response register(UUID memberId, ProductDto.Request request);
 }

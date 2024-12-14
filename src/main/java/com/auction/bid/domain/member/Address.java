@@ -9,8 +9,6 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
 @Getter
-@AllArgsConstructor
-@NoArgsConstructor
 public class Address {
 
     @NotEmpty

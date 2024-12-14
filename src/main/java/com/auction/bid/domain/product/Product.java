@@ -61,7 +61,7 @@ public class Product extends BaseEntity {
         this.member = member;
     }
 
-    public void assingMember(Member member){
+    public void assignMember(Member member){
         if(this.member == null){
             setMember(member);
         }
@@ -71,7 +71,7 @@ public class Product extends BaseEntity {
         this.category = category;
     }
 
-    public void assingCategory(Category category){
+    public void assignCategory(Category category){
         if(this.category == null){
             setCategory(category);
         }
