@@ -10,6 +10,7 @@ import com.auction.bid.domain.product.repository.ProductRepository;
 import com.auction.bid.domain.product.service.ProductService;
 import com.auction.bid.global.exception.ErrorCode;
 import com.auction.bid.global.exception.exceptions.ProductException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,6 +35,7 @@ public class ProductServiceImpl implements ProductService {
 
     private final CategoryRepository categoryRepository;
 
+    @Transactional
     @Override
     public ProductDto.Response register( List<MultipartFile> images, ProductDto.Request request, UUID memberId){
 
@@ -48,8 +50,10 @@ public class ProductServiceImpl implements ProductService {
             throw new ProductException(ErrorCode.INVALID_AUCTION_END_TIME_START_AFTER);
         }
 
-        // Dto에서 email을 받지 않고 있음. 회원을 구분할 수 있는것을 받아야함.
-        // 아니면 토큰으로 기억되어서 그 정보를 넘겨주던가.
+        System.out.println("Entering register method...");
+        System.out.println("Request: " + request.toString());
+        System.out.println("Member ID: " + memberId);
+
         Product product =  ProductDto.Request.toEntity(request);
         product.assignMember(memberRepository.findByMemberId(memberId).orElseThrow(
                 () -> new IllegalArgumentException("멤버 값이 현재 없습니다.")));
@@ -57,8 +61,13 @@ public class ProductServiceImpl implements ProductService {
         product.assignCategory(categoryRepository.findByCategoryName(request.getCategory()).orElseThrow(
                 () -> new IllegalArgumentException("카테고리 값이 현재 없습니다.")));
 
+        System.out.println("Before Saving Product: " + product.toString());
+
         uploadPhoto(product, images);
-        return ProductDto.Response.fromEntity(productRepository.save(product));
+        Product savedProduct = productRepository.save(product);
+
+        System.out.println("Saved Product ID: " + savedProduct.getId());
+        return ProductDto.Response.fromEntity(savedProduct);
 
     }
 
