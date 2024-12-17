@@ -11,5 +11,5 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ProductService {
-    ProductDto.Response register(List<MultipartFile> images, ProductDto.Request request, UUID memberId);
+    ProductDto.Response register(List<MultipartFile> images, ProductDto.Request request, String token);
 }

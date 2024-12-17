@@ -10,6 +10,7 @@ import com.auction.bid.domain.product.repository.ProductRepository;
 import com.auction.bid.domain.product.service.ProductService;
 import com.auction.bid.global.exception.ErrorCode;
 import com.auction.bid.global.exception.exceptions.ProductException;
+import com.auction.bid.global.security.jwt.JWTUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,9 +36,11 @@ public class ProductServiceImpl implements ProductService {
 
     private final CategoryRepository categoryRepository;
 
+    private final JWTUtil jwtUtil;
+
     @Transactional
     @Override
-    public ProductDto.Response register( List<MultipartFile> images, ProductDto.Request request, UUID memberId){
+    public ProductDto.Response register( List<MultipartFile> images, ProductDto.Request request, String token){
 
         if (productRepository.existsByTitle(request.getTitle())){
             throw new ProductException(ErrorCode.DUPLICATE_PRODUCT);
@@ -50,9 +53,7 @@ public class ProductServiceImpl implements ProductService {
             throw new ProductException(ErrorCode.INVALID_AUCTION_END_TIME_START_AFTER);
         }
 
-        System.out.println("Entering register method...");
-        System.out.println("Request: " + request.toString());
-        System.out.println("Member ID: " + memberId);
+        UUID memberId = extractMemberIdFromToken(token);
 
         Product product =  ProductDto.Request.toEntity(request);
         product.assignMember(memberRepository.findByMemberId(memberId).orElseThrow(
@@ -99,5 +100,13 @@ public class ProductServiceImpl implements ProductService {
         Files.write(path, image.getBytes());
 
         return dbFilePath;
+    }
+
+    private UUID extractMemberIdFromToken(String token){
+        String jwtToken = jwtUtil.getTokenFromHeader(token);
+        String memberIdStr = jwtUtil.getMemberIdFromToken(jwtToken);
+        UUID memberId = UUID.fromString(memberIdStr);
+
+        return memberId;
     }
 }

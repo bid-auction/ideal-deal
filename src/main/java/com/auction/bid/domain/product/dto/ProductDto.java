@@ -44,11 +44,11 @@ public class ProductDto {
 
         public static Product toEntity(Request request){
             Product product =  Product.builder()
-                    .title(request.title)
-                    .description(request.description)
-                    .startBid(request.startBid)
-                    .auctionStart(request.auctionStart)
-                    .auctionEnd(request.auctionEnd)
+                    .title(request.getTitle())
+                    .description(request.getDescription())
+                    .startBid(request.getStartBid())
+                    .auctionStart(request.getAuctionStart())
+                    .auctionEnd(request.getAuctionEnd())
                     .build();
             return product;
         }
