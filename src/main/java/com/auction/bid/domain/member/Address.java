@@ -19,5 +19,4 @@ public class Address {
 
     @NotEmpty
     private String zipcode;
-
 }

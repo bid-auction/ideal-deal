@@ -1,5 +1,6 @@
 package com.auction.bid.domain.member;
 
+
 import com.auction.bid.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;

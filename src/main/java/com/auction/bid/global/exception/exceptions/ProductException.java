@@ -4,13 +4,12 @@ import com.auction.bid.global.exception.ErrorCode;
 import lombok.Getter;
 
 @Getter
-public class MemberException extends RuntimeException{
+public class ProductException extends RuntimeException {
 
     private final ErrorCode errorCode;
 
-    public MemberException(ErrorCode errorCode) {
+    public ProductException(ErrorCode errorCode){
         super(errorCode.getDescription());
-        this.errorCode = errorCode;
+        this.errorCode=errorCode;
     }
-
 }
