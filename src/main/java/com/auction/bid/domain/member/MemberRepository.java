@@ -11,9 +11,11 @@ import java.util.UUID;
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
     Optional<Member> findByProviderId(String providerId);
+
     boolean existsByLoginId(String loginId);
+
     Optional<Member> findByLoginId(String loginId);
 
-    Optional<Member> findByMemberId(UUID memberId);
+    Optional<Member> findByMemberUUID(UUID memberId);
 }
 
