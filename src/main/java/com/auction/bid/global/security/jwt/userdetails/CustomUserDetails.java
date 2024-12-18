@@ -31,5 +31,5 @@ public class CustomUserDetails implements UserDetails {
         return member.getName();
     }
 
-    public UUID getUUID() {return member.getMemberId();}
+    public UUID getUUID() {return member.getMemberUUID();}
 }
