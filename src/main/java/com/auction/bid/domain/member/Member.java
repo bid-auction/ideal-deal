@@ -12,7 +12,12 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Table(name = "member", indexes = @Index(name = "idx_provider_id", columnList = "provider_id"))
+@Table(name = "member",
+        indexes = {
+                @Index(name = "idx_provider_id", columnList = "provider_id"),
+                @Index(name = "idx_member_uuid", columnList = "member_uuid")
+        }
+)
 public class Member extends BaseEntity {
 
     @Id
@@ -21,7 +26,7 @@ public class Member extends BaseEntity {
     private Long id;
 
     @Column(name = "member_uuid", columnDefinition = "BINARY(16)", unique = true)
-    private UUID memberId;
+    private UUID memberUUID;
 
     @Column(name = "name")
     private String name;
