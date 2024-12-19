@@ -110,52 +110,42 @@ public class ProductServiceImpl implements ProductService {
         return dbFilePath;
     }
 
-    private UUID extractMemberIdFromToken(String token){
-        String jwtToken = jwtUtil.getTokenFromHeader(token);
-        String memberIdStr = jwtUtil.getMemberIdFromToken(jwtToken);
-        UUID memberId = UUID.fromString(memberIdStr);
-
-        return memberId;
-    }
-
-    @Override
-    public ProductDto.Response update(Long productId, List<MultipartFile> images, ProductDto.Request request, String token) {
-
-        if (productRepository.existsByTitle(request.getTitle())){
-            throw new ProductException(ErrorCode.DUPLICATE_PRODUCT);
-        }
-
-        if(request.getAuctionStart().isBefore(LocalDateTime.now())){
-            throw new ProductException(ErrorCode.INVALID_AUCTION_START_TIME_NOW_AFTER);
-        }
-        if(request.getAuctionEnd().isBefore(request.getAuctionStart())){
-            throw new ProductException(ErrorCode.INVALID_AUCTION_END_TIME_START_AFTER);
-        }
-
-        UUID memberId = extractMemberIdFromToken(token);
-
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
-
-        Product productUpdate = Product.builder()
-                .id(product.getId())
-                .title(request.getTitle())
-                .description(request.getDescription())
-                .startBid(request.getStartBid())
-                .auctionStart(request.getAuctionStart())
-                .auctionEnd(request.getAuctionEnd())
-                .member((memberRepository.findByMemberId(memberId).orElseThrow(
-                        () -> new IllegalArgumentException("멤버 값이 현재 없습니다."))))
-                .category(categoryRepository.findByCategoryName(request.getCategory()).orElseThrow(
-                                () -> new IllegalArgumentException("카테고리 값이 현재 없습니다.")))
-                .build();
-
-        uploadPhoto(productUpdate, images);
-        Product savedProduct = productRepository.save(productUpdate);
-
-        System.out.println("Saved Product ID: " + savedProduct.getId());
-        return ProductDto.Response.fromEntity(savedProduct);
-    }
+//    @Override
+//    public ProductDto.Response update(Long productId, List<MultipartFile> images, ProductDto.Request request, String token) {
+//
+//        if (productRepository.existsByTitle(request.getTitle())){
+//            throw new ProductException(ErrorCode.DUPLICATE_PRODUCT);
+//        }
+//
+//        if(request.getAuctionStart().isBefore(LocalDateTime.now())){
+//            throw new ProductException(ErrorCode.INVALID_AUCTION_START_TIME_NOW_AFTER);
+//        }
+//        if(request.getAuctionEnd().isBefore(request.getAuctionStart())){
+//            throw new ProductException(ErrorCode.INVALID_AUCTION_END_TIME_START_AFTER);
+//        }
+//
+//        Product product = productRepository.findById(productId)
+//                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+//
+//        Product productUpdate = Product.builder()
+//                .id(product.getId())
+//                .title(request.getTitle())
+//                .description(request.getDescription())
+//                .startBid(request.getStartBid())
+//                .auctionStart(request.getAuctionStart())
+//                .auctionEnd(request.getAuctionEnd())
+//                .member((memberRepository.findByMemberUUID(memberId).orElseThrow(
+//                        () -> new IllegalArgumentException("멤버 값이 현재 없습니다."))))
+//                .category(categoryRepository.findByCategoryName(request.getCategory()).orElseThrow(
+//                                () -> new IllegalArgumentException("카테고리 값이 현재 없습니다.")))
+//                .build();
+//
+//        uploadPhoto(productUpdate, images);
+//        Product savedProduct = productRepository.save(productUpdate);
+//
+//        System.out.println("Saved Product ID: " + savedProduct.getId());
+//        return ProductDto.Response.fromEntity(savedProduct);
+//    }
 
     @Override
     public void delete(Long productId){
@@ -164,7 +154,12 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductDto.Response findById(Long productId){
+        List<Photo> photos = photoRepository.findByProductId(productId);
+        if (photos.isEmpty()){
+            throw new IllegalArgumentException("Photos not found");
+        }
+
         return ProductDto.Response.fromEntity(productRepository.findById(productId)
-                .orElseThrow(()->new IllegalArgumentException("Product not found")));
+                .orElseThrow(()->new IllegalArgumentException("Product not found")), photos);
     }
 }
