@@ -49,7 +49,7 @@ public class JWTUtil {
         return authorizationHeader.substring(7);
     }
 
-    public String getMemberIdFromToken(String token) {
+    public String getMemberStrUUIDFromToken(String token) {
         try {
                 return Jwts.parser()
                 .verifyWith(secretKey)
@@ -61,6 +61,12 @@ public class JWTUtil {
         } catch (JwtException | IllegalArgumentException e) {
             throw new AuthException(ErrorCode.INVALID_TOKEN);
         }
+    }
+
+    public UUID getMemberUUIDFromToken(String token) {
+        String jwtToken = getTokenFromHeader(token);
+        String memberIdStr = getMemberStrUUIDFromToken(jwtToken);
+        return UUID.fromString(memberIdStr);
     }
 
     public String getPassword(String token) {

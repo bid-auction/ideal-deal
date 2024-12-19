@@ -1,6 +1,7 @@
 package com.auction.bid.global.exception;
 
 import com.auction.bid.global.exception.exceptions.AuthException;
+import com.auction.bid.global.exception.exceptions.CategoryException;
 import com.auction.bid.global.exception.exceptions.MailException;
 import com.auction.bid.global.exception.exceptions.MemberException;
 import org.springframework.http.HttpStatus;
@@ -28,6 +29,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AuthException.class)
     public ResponseEntity<String> handleAuthException(AuthException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(CategoryException.class)
+    public ResponseEntity<String> handleCategoryException(CategoryException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 

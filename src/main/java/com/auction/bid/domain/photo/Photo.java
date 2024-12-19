@@ -34,4 +34,5 @@ public class Photo extends BaseEntity {
         this.imagePath = dbImagePath;
         this.product = product;
     }
+
 }

@@ -14,7 +14,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -22,7 +21,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Optional;
 import java.util.UUID;
 
 import static com.auction.bid.global.security.ConstSecurity.*;
@@ -88,12 +86,12 @@ public class JWTFilter extends OncePerRequestFilter {
         }
 
 
-        String findMemberId = jwtUtil.getMemberIdFromToken(accessToken);
+        String findMemberId = jwtUtil.getMemberStrUUIDFromToken(accessToken);
         String findPassword = jwtUtil.getPassword(accessToken);
         String findRole = jwtUtil.getRole(accessToken);
 
         Member findMember = Member.builder()
-                .memberId(UUID.fromString(findMemberId))
+                .memberUUID(UUID.fromString(findMemberId))
                 .password(findPassword)
                 .role(findRole)
                 .build();

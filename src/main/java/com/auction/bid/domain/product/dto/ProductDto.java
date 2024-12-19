@@ -1,19 +1,14 @@
 package com.auction.bid.domain.product.dto;
 
-import com.auction.bid.domain.photo.Photo;
-import com.auction.bid.domain.product.AuctionPhase;
-import com.auction.bid.domain.product.AuctionStatus;
+import com.auction.bid.domain.category.Category;
+import com.auction.bid.domain.member.Member;
+import com.auction.bid.domain.product.ProductBidPhase;
 import com.auction.bid.domain.product.Product;
-import jakarta.persistence.Column;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 public class ProductDto {
 
@@ -42,21 +37,24 @@ public class ProductDto {
         @NotEmpty(message = "카테고리 선택은 필수입니다.")
         private String category;
 
-        public static Product toEntity(Request request){
-            Product product =  Product.builder()
+        public static Product toEntity(Request request, Member member, Category category){
+            return Product.builder()
                     .title(request.getTitle())
                     .description(request.getDescription())
                     .startBid(request.getStartBid())
                     .auctionStart(request.getAuctionStart())
                     .auctionEnd(request.getAuctionEnd())
+                    .member(member)
+                    .category(category)
+                    .productBidPhase(ProductBidPhase.BEFORE)
                     .build();
-            return product;
         }
     }
 
     @Builder
     @Getter
     public static class Response{
+        private Long id;
         private String title;
         private String description;
         private Long startBid;
@@ -65,6 +63,7 @@ public class ProductDto {
 
         public static Response fromEntity(Product product){
             return Response.builder()
+                    .id(product.getId())
                     .title(product.getTitle())
                     .description(product.getDescription())
                     .startBid(product.getStartBid())

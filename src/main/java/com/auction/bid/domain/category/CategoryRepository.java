@@ -1,4 +1,4 @@
-package com.auction.bid.domain.product.repository;
+package com.auction.bid.domain.category;
 
 import com.auction.bid.domain.category.Category;
 import org.springframework.data.jpa.repository.JpaRepository;

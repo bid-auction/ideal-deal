@@ -47,7 +47,7 @@ public class SignUpDto {
 
         public static Member toEntity(Request request, String encodedPassword) {
             return Member.builder()
-                    .memberId(UUID.randomUUID())
+                    .memberUUID(UUID.randomUUID())
                     .loginId(request.getLoginId())
                     .password(encodedPassword)
                     .email(request.getEmail())
