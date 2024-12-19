@@ -38,3 +38,6 @@ out/
 
 ### yml file ###
 *.yml
+
+### image file ###
+.webp
