@@ -1,4 +1,4 @@
-package com.auction.bid.domain.product.repository;
+package com.auction.bid.domain.photo;
 
 import com.auction.bid.domain.photo.Photo;
 import jakarta.persistence.Id;

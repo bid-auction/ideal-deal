@@ -72,7 +72,7 @@ public class CustomAuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             UUID uuid = UUID.randomUUID();
             member = memberRepository.save(
                     Member.builder()
-                            .memberId(uuid)
+                            .memberUUID(uuid)
                             .name(name)
                             .provider(provider)
                             .providerId(providerId)
@@ -81,7 +81,7 @@ public class CustomAuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                             .build());
         } else {
             member = findMember.get();
-            Optional<RefreshToken> existingToken = refreshTokenRepository.findByMemberId(member.getMemberId());
+            Optional<RefreshToken> existingToken = refreshTokenRepository.findByMemberId(member.getMemberUUID());
             existingToken.ifPresent(refreshTokenRepository::delete);
             // refresh토큰을 아래에서 재발행하기위해 바로 Flush날림
             refreshTokenRepository.flush();
@@ -89,21 +89,21 @@ public class CustomAuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         String refreshToken = jwtUtil
                 .generateRefreshToken(
-                        member.getMemberId(),
+                        member.getMemberUUID(),
                         ConstSecurity.ROLE_MEMBER,
                         REFRESH_TOKEN_EXPIRATION_TIME
                 );
 
         refreshTokenRepository.save(
                 RefreshToken.builder()
-                        .memberId(member.getMemberId())
+                        .memberId(member.getMemberUUID())
                         .token(refreshToken)
                         .build()
         );
 
         String accessToken = jwtUtil
                 .generateAccessToken(
-                        member.getMemberId(),
+                        member.getMemberUUID(),
                         ConstSecurity.ROLE_MEMBER,
                         ACCESS_TOKEN_EXPIRATION_TIME
                 );

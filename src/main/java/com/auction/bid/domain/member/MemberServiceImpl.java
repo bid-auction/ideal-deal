@@ -93,7 +93,7 @@ public class MemberServiceImpl implements MemberService{
         }
 
         String jwtToken = jwtUtil.getTokenFromHeader(token);
-        String memberId = jwtUtil.getMemberIdFromToken(jwtToken);
+        String memberId = jwtUtil.getMemberStrUUIDFromToken(jwtToken);
         redisTemplate.opsForValue().set(jwtToken, ConstSecurity.BLACK_LIST, 1, TimeUnit.DAYS);
         refreshTokenRepository.deleteByMemberId(UUID.fromString(memberId));
 

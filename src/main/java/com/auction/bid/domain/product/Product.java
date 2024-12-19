@@ -2,18 +2,14 @@ package com.auction.bid.domain.product;
 
 import com.auction.bid.domain.category.Category;
 import com.auction.bid.domain.member.Member;
-import com.auction.bid.domain.photo.Photo;
 import com.auction.bid.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.query.sqm.mutation.internal.temptable.AfterUseAction;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Getter
@@ -25,7 +21,7 @@ public class Product extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="product_id")
-    private long id;
+    private Long id;
 
     @Column(nullable = false)
     private String title;
@@ -43,10 +39,7 @@ public class Product extends BaseEntity {
     private LocalDateTime auctionEnd;
 
     @Enumerated(EnumType.STRING)
-    private AuctionStatus auctionStatus;
-
-    @Enumerated(EnumType.STRING)
-    private AuctionPhase auctionPhase;
+    private ProductBidPhase productBidPhase;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
@@ -56,23 +49,8 @@ public class Product extends BaseEntity {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
-    private void setMember(Member member) {
-        this.member = member;
+    public void changeAuctionPhase(ProductBidPhase productBidPhase) {
+        this.productBidPhase = productBidPhase;
     }
 
-    public void assignMember(Member member){
-        if(this.member == null){
-            setMember(member);
-        }
-    }
-
-    private void setCategory(Category category) {
-        this.category = category;
-    }
-
-    public void assignCategory(Category category){
-        if(this.category == null){
-            setCategory(category);
-        }
-    }
 }
