@@ -16,6 +16,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static com.auction.bid.global.scheduler.ConstAuction.AUCTION;
@@ -36,6 +37,13 @@ public class AuctionScheduler {
 
         HashOperations<String, Long, List<BidDto>> openedAuctionRedis = redisTemplate.opsForHash();
         openedAuctionRedis.put(AUCTION, product.getId(), new ArrayList<>());
+
+        List<BidDto> bidDtos = openedAuctionRedis.get(AUCTION, product.getId());
+        bidDtos.add(new BidDto(1L, 2L, "test", 100L, LocalDateTime.now()));
+        bidDtos.add(new BidDto(1L, 3L, "test1", 200L, LocalDateTime.now()));
+        bidDtos.add(new BidDto(1L, 2L, "test", 300L, LocalDateTime.now()));
+        bidDtos.add(new BidDto(1L, 4L, "test2", 400L, LocalDateTime.now()));
+        openedAuctionRedis.put(AUCTION, product.getId(), bidDtos);
     }
 
     @Async
@@ -44,8 +52,8 @@ public class AuctionScheduler {
         schedulerService.changeAuctionPhase(product, ProductBidPhase.ENDED);
 
         HashOperations<String, Long, List<BidDto>> openedAuctionRedis = redisTemplate.opsForHash();
-        List<BidDto> bidDtoList = openedAuctionRedis.get(AUCTION, product.getId());
-        openedAuctionRedis.delete(AUCTION, product.getId());
+        List<BidDto> bidDtoList = BidDto
+                .convertToBidDtoList(openedAuctionRedis.get(AUCTION, product.getId()));
 
         BidDto bidDto = bidDtoList.isEmpty() ? new BidDto() : bidDtoList.get(bidDtoList.size() - 1);
         Long finalAmount = bidDto.getBidAmount();
@@ -59,6 +67,8 @@ public class AuctionScheduler {
 
         schedulerService.saveSale(finalBuyerId, product.getId(), finalAmount);
         log.info("판매 저장 완료");
+
+        openedAuctionRedis.delete(AUCTION, product.getId());
     }
 
 }
