@@ -1,12 +1,12 @@
 package com.auction.bid.domain.product;
 
 import com.auction.bid.domain.category.Category;
+import com.auction.bid.domain.category.CategoryRepository;
 import com.auction.bid.domain.member.Member;
 import com.auction.bid.domain.member.MemberRepository;
 import com.auction.bid.domain.photo.Photo;
-import com.auction.bid.domain.product.dto.ProductDto;
-import com.auction.bid.domain.category.CategoryRepository;
 import com.auction.bid.domain.photo.PhotoRepository;
+import com.auction.bid.domain.product.dto.ProductDto;
 import com.auction.bid.global.exception.ErrorCode;
 import com.auction.bid.global.exception.exceptions.CategoryException;
 import com.auction.bid.global.exception.exceptions.MemberException;
@@ -29,7 +29,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -78,6 +78,42 @@ public class ProductServiceImpl implements ProductService {
         return ProductDto.Response.fromEntity(savedProduct);
     }
 
+    @Override
+    public void delete(Long productId){
+        productRepository.deleteById(productId);
+    }
+
+    @Override
+    public ProductDto.Response getProductDetail(Long productId){
+        List<Photo> photos = photoRepository.findByProductId(productId);
+//        productPhase에 맞춰서 나눠서 반환해야하지 않을까?
+//        진행전에는 Null
+//        진행중은 웹소켓
+//        완료는 웹소켓 종료된 최종낙찰가?
+        if (photos.isEmpty()){
+            throw new PhotoException(ErrorCode.PHOTO_NOT_FOUND);
+        }
+
+        Product findProduct = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductException(ErrorCode.NOT_EXISTS_PRODUCT));
+
+        return ProductDto.Response.fromEntity(findProduct, photos);
+    }
+
+    @Override
+    public Product findById(Long productId) {
+        return productRepository.findById(productId)
+                .orElseThrow(() -> new ProductException(ErrorCode.NOT_EXISTS_PRODUCT));
+    }
+
+    @Override
+    public boolean isOnGoing(Long productId) {
+        Product findProduct = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductException(ErrorCode.NOT_EXISTS_PRODUCT));
+
+        return findProduct.getProductBidPhase().equals(ProductBidPhase.ONGOING);
+    }
+
     private void uploadPhoto(Product product, List<MultipartFile> images){
 
         try {
@@ -109,5 +145,42 @@ public class ProductServiceImpl implements ProductService {
 
         return dbFilePath;
     }
+
+//    @Override
+//    public ProductDto.Response update(Long productId, List<MultipartFile> images, ProductDto.Request request, String token) {
+//
+//        if (productRepository.existsByTitle(request.getTitle())){
+//            throw new ProductException(ErrorCode.DUPLICATE_PRODUCT);
+//        }
+//
+//        if(request.getAuctionStart().isBefore(LocalDateTime.now())){
+//            throw new ProductException(ErrorCode.INVALID_AUCTION_START_TIME_NOW_AFTER);
+//        }
+//        if(request.getAuctionEnd().isBefore(request.getAuctionStart())){
+//            throw new ProductException(ErrorCode.INVALID_AUCTION_END_TIME_START_AFTER);
+//        }
+//
+//        Product product = productRepository.findById(productId)
+//                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+//
+//        Product productUpdate = Product.builder()
+//                .id(product.getId())
+//                .title(request.getTitle())
+//                .description(request.getDescription())
+//                .startBid(request.getStartBid())
+//                .auctionStart(request.getAuctionStart())
+//                .auctionEnd(request.getAuctionEnd())
+//                .member((memberRepository.findByMemberUUID(memberId).orElseThrow(
+//                        () -> new IllegalArgumentException("멤버 값이 현재 없습니다."))))
+//                .category(categoryRepository.findByCategoryName(request.getCategory()).orElseThrow(
+//                                () -> new IllegalArgumentException("카테고리 값이 현재 없습니다.")))
+//                .build();
+//
+//        uploadPhoto(productUpdate, images);
+//        Product savedProduct = productRepository.save(productUpdate);
+//
+//        System.out.println("Saved Product ID: " + savedProduct.getId());
+//        return ProductDto.Response.fromEntity(savedProduct);
+//    }
 
 }

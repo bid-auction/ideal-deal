@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -98,6 +99,12 @@ public class MemberServiceImpl implements MemberService{
         refreshTokenRepository.deleteByMemberId(UUID.fromString(memberId));
 
         return memberId;
+    }
+
+    @Override
+    public Member findByMemberUUID(UUID memberUUID) {
+        return memberRepository.findByMemberUUID(memberUUID)
+                .orElseThrow(() -> new MemberException(ErrorCode.NOT_EXIST_MEMBER));
     }
 
 }
