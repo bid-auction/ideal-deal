@@ -1,9 +1,6 @@
 package com.auction.bid.global.exception;
 
-import com.auction.bid.global.exception.exceptions.AuthException;
-import com.auction.bid.global.exception.exceptions.CategoryException;
-import com.auction.bid.global.exception.exceptions.MailException;
-import com.auction.bid.global.exception.exceptions.MemberException;
+import com.auction.bid.global.exception.exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -12,7 +9,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -34,6 +30,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(CategoryException.class)
     public ResponseEntity<String> handleCategoryException(CategoryException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(SocketException.class)
+    public ResponseEntity<String> handleSocketException(SocketException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(BidException.class)
+    public ResponseEntity<String> handleBidException(BidException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
