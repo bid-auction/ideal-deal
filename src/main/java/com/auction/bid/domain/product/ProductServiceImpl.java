@@ -37,7 +37,7 @@ import java.util.UUID;
 @Transactional
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
-
+//
     private final ProductRepository productRepository;
     private final PhotoRepository photoRepository;
     private final MemberRepository memberRepository;
@@ -182,5 +182,22 @@ public class ProductServiceImpl implements ProductService {
 //        System.out.println("Saved Product ID: " + savedProduct.getId());
 //        return ProductDto.Response.fromEntity(savedProduct);
 //    }
+
+
+    @Override
+    public void delete(Long productId){
+         productRepository.deleteById(productId);
+    }
+
+    @Override
+    public ProductDto.Response findById(Long productId){
+        List<Photo> photos = photoRepository.findByProductId(productId);
+        if (photos.isEmpty()){
+            throw new IllegalArgumentException("Photos not found");
+        }
+
+        return ProductDto.Response.fromEntity(productRepository.findById(productId)
+                .orElseThrow(()->new IllegalArgumentException("Product not found")), photos);
+    }
 
 }

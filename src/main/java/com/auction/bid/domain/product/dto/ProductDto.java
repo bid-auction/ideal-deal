@@ -8,13 +8,14 @@ import com.auction.bid.domain.product.Product;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.w3c.dom.stylesheets.LinkStyle;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ProductDto {
-
+//
     @Builder
     @Getter
     @Setter
