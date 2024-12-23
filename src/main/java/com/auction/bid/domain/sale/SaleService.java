@@ -6,7 +6,5 @@ import java.util.List;
 
 public interface SaleService {
 
-//    void saveSale(Long sellerId, Long buyerId, Long productId, Long finalAmount);
-
 
 }

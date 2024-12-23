@@ -17,24 +17,4 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class SaleServiceImpl implements SaleService{
 
-    private final MemberRepository memberRepository;
-    private final ProductRepository productRepository;
-    private final SaleRepository saleRepository;
-
-//    @Override
-//    public void saveSale(Long sellerId, Long buyerId, Long productId, Long finalAmount) {
-//        if (buyerId == null) {
-//            saleRepository.save(Sale.fromAuction(null, SaleStatus.SALE_FAILURE, null, null));
-//            return;
-//        }
-//
-//        Member findBuyer = memberRepository.findById(buyerId)
-//                .orElseThrow(() -> new MemberException(ErrorCode.NOT_EXIST_MEMBER));
-//
-//        Product findProduct = productRepository.findById(productId)
-//                .orElseThrow(() -> new ProductException(ErrorCode.NOT_EXISTS_PRODUCT));
-//
-//        saleRepository.save(Sale.fromAuction(finalAmount, SaleStatus.SALE_SUCCESS, findBuyer, findProduct));
-//    }
-
 }

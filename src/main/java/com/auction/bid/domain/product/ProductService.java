@@ -19,6 +19,5 @@ public interface ProductService {
 
     boolean isOnGoing(Long productId);
 
-    ProductDto.Response findById(Long productId);
 
 }

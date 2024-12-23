@@ -29,7 +29,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -37,7 +36,7 @@ import java.util.UUID;
 @Transactional
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
-//
+
     private final ProductRepository productRepository;
     private final PhotoRepository photoRepository;
     private final MemberRepository memberRepository;
@@ -66,8 +65,8 @@ public class ProductServiceImpl implements ProductService {
 
         Product product = ProductDto.Request.toEntity(request, findMember, findCategory);
 
-        uploadPhoto(product, images);
         Product savedProduct = productRepository.save(product);
+        uploadPhoto(product, images);
 
         Instant startDate = product.getAuctionStart().atZone(Clock.systemDefaultZone().getZone()).toInstant();
         taskScheduler.schedule(() -> auctionScheduler.openAuction(product), startDate);
@@ -79,17 +78,8 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public void delete(Long productId){
-        productRepository.deleteById(productId);
-    }
-
-    @Override
     public ProductDto.Response getProductDetail(Long productId){
         List<Photo> photos = photoRepository.findByProductId(productId);
-//        productPhase에 맞춰서 나눠서 반환해야하지 않을까?
-//        진행전에는 Null
-//        진행중은 웹소켓
-//        완료는 웹소켓 종료된 최종낙찰가?
         if (photos.isEmpty()){
             throw new PhotoException(ErrorCode.PHOTO_NOT_FOUND);
         }
@@ -98,12 +88,6 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new ProductException(ErrorCode.NOT_EXISTS_PRODUCT));
 
         return ProductDto.Response.fromEntity(findProduct, photos);
-    }
-
-    @Override
-    public Product findById(Long productId) {
-        return productRepository.findById(productId)
-                .orElseThrow(() -> new ProductException(ErrorCode.NOT_EXISTS_PRODUCT));
     }
 
     @Override
@@ -190,14 +174,9 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductDto.Response findById(Long productId){
-        List<Photo> photos = photoRepository.findByProductId(productId);
-        if (photos.isEmpty()){
-            throw new IllegalArgumentException("Photos not found");
-        }
-
-        return ProductDto.Response.fromEntity(productRepository.findById(productId)
-                .orElseThrow(()->new IllegalArgumentException("Product not found")), photos);
+    public Product findById(Long productId) {
+        return productRepository.findById(productId)
+                .orElseThrow(() -> new ProductException(ErrorCode.NOT_EXISTS_PRODUCT));
     }
 
 }
