@@ -114,6 +114,14 @@ public class WebSocketBidHandler extends TextWebSocketHandler {
             return;
         }
 
+        if (!bidList.isEmpty()) {
+            List<BidDto> bidDtos = BidDto.convertToBidDtoList(bidList);
+            BidDto bidDto = bidDtos.get(bidDtos.size() - 1);
+            if (Objects.equals(bidDto.getMemberId(), member.getId())) {
+                sendMessage(session, "현재 최고 입찰자는 본인입니다.");
+                return;
+            }
+        }
         // 세션을 기준으로 돈 작성 시에 새로운 세션에의 같은 멤버는 제대로 된 입찰이 불가능 해짐
         // 추후에 레디스를 이용해 별도로 입찰 금액을 꺼내와야 됨
 
