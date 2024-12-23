@@ -42,8 +42,13 @@ public enum ErrorCode {
     NOT_EXIST_AUCTION("해당 경매는 존재하지 않습니다.", HttpStatus.BAD_REQUEST),
     BID_AMOUNT_TOO_LOW("현재 경매가보다 입찰 금액이 높아야합니다.", HttpStatus.BAD_REQUEST),
 
+    // MoneyException
+    NOT_ENOUGH_MONEY("돈이 충분하지 않습니다.", HttpStatus.BAD_REQUEST),
+
     // SocketException
     FAILED_TO_CONNECT_WS("웹소켓 연결에 실패하였습니다.", HttpStatus.BAD_REQUEST);
+
+
 
 
     private final String description;

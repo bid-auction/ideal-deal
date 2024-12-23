@@ -1,5 +1,6 @@
 package com.auction.bid.domain.member;
 
+import com.auction.bid.domain.member.dto.ChargeDto;
 import com.auction.bid.domain.member.dto.EmailDto;
 import com.auction.bid.domain.member.dto.SignUpDto;
 import com.auction.bid.domain.member.dto.TokenVerificationDto;
@@ -39,4 +40,21 @@ public class MemberController {
         return ResponseEntity.ok(memberService.logout(token));
     }
 
+    @PreAuthorize(ConstSecurity.HAS_ROLE_MEMBER)
+    @PostMapping("/charge/money")
+    public ResponseEntity<?> charge(
+            @RequestHeader(ConstSecurity.AUTHORIZATION) String token,
+            @RequestBody ChargeDto.Request dtoRequest) {
+        return ResponseEntity.ok(memberService.chargeMoney(token, dtoRequest));
+    }
+
+    @PreAuthorize(ConstSecurity.HAS_ROLE_MEMBER)
+    @GetMapping("/charge")
+    public ResponseEntity<?> getMoney(
+            @RequestHeader(ConstSecurity.AUTHORIZATION) String token) {
+        return ResponseEntity.ok(memberService.getMoney(token));
+    }
+
+    // 충전 내역 전체 조회 만들지 필요(만들면 entity, repository 만들어야 됨)
+    // 멤버 register할 때 balance를 0L로 등록하기(안하면 NULL이 들어가있음)
 }
