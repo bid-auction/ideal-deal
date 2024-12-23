@@ -37,13 +37,6 @@ public class AuctionScheduler {
 
         HashOperations<String, Long, List<BidDto>> openedAuctionRedis = redisTemplate.opsForHash();
         openedAuctionRedis.put(AUCTION, product.getId(), new ArrayList<>());
-
-        List<BidDto> bidDtos = openedAuctionRedis.get(AUCTION, product.getId());
-        bidDtos.add(new BidDto(1L, 2L, "test", 100L, LocalDateTime.now()));
-        bidDtos.add(new BidDto(1L, 3L, "test1", 200L, LocalDateTime.now()));
-        bidDtos.add(new BidDto(1L, 2L, "test", 300L, LocalDateTime.now()));
-        bidDtos.add(new BidDto(1L, 4L, "test2", 400L, LocalDateTime.now()));
-        openedAuctionRedis.put(AUCTION, product.getId(), bidDtos);
     }
 
     @Async

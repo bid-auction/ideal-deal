@@ -1,12 +1,12 @@
 package com.auction.bid.domain.product;
 
 import com.auction.bid.domain.category.Category;
+import com.auction.bid.domain.category.CategoryRepository;
 import com.auction.bid.domain.member.Member;
 import com.auction.bid.domain.member.MemberRepository;
 import com.auction.bid.domain.photo.Photo;
-import com.auction.bid.domain.product.dto.ProductDto;
-import com.auction.bid.domain.category.CategoryRepository;
 import com.auction.bid.domain.photo.PhotoRepository;
+import com.auction.bid.domain.product.dto.ProductDto;
 import com.auction.bid.global.exception.ErrorCode;
 import com.auction.bid.global.exception.exceptions.CategoryException;
 import com.auction.bid.global.exception.exceptions.MemberException;
@@ -29,7 +29,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -76,6 +76,42 @@ public class ProductServiceImpl implements ProductService {
         taskScheduler.schedule(() -> auctionScheduler.closeAuction(product), endDate);
 
         return ProductDto.Response.fromEntity(savedProduct);
+    }
+
+    @Override
+    public void delete(Long productId){
+        productRepository.deleteById(productId);
+    }
+
+    @Override
+    public ProductDto.Response getProductDetail(Long productId){
+        List<Photo> photos = photoRepository.findByProductId(productId);
+//        productPhase에 맞춰서 나눠서 반환해야하지 않을까?
+//        진행전에는 Null
+//        진행중은 웹소켓
+//        완료는 웹소켓 종료된 최종낙찰가?
+        if (photos.isEmpty()){
+            throw new PhotoException(ErrorCode.PHOTO_NOT_FOUND);
+        }
+
+        Product findProduct = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductException(ErrorCode.NOT_EXISTS_PRODUCT));
+
+        return ProductDto.Response.fromEntity(findProduct, photos);
+    }
+
+    @Override
+    public Product findById(Long productId) {
+        return productRepository.findById(productId)
+                .orElseThrow(() -> new ProductException(ErrorCode.NOT_EXISTS_PRODUCT));
+    }
+
+    @Override
+    public boolean isOnGoing(Long productId) {
+        Product findProduct = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductException(ErrorCode.NOT_EXISTS_PRODUCT));
+
+        return findProduct.getProductBidPhase().equals(ProductBidPhase.ONGOING);
     }
 
     private void uploadPhoto(Product product, List<MultipartFile> images){
@@ -147,6 +183,7 @@ public class ProductServiceImpl implements ProductService {
 //        return ProductDto.Response.fromEntity(savedProduct);
 //    }
 
+
     @Override
     public void delete(Long productId){
          productRepository.deleteById(productId);
@@ -162,4 +199,5 @@ public class ProductServiceImpl implements ProductService {
         return ProductDto.Response.fromEntity(productRepository.findById(productId)
                 .orElseThrow(()->new IllegalArgumentException("Product not found")), photos);
     }
+
 }

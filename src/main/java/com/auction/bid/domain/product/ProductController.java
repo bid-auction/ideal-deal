@@ -2,7 +2,6 @@ package com.auction.bid.domain.product;
 
 import com.auction.bid.domain.product.dto.ProductDto;
 import com.auction.bid.global.security.ConstSecurity;
-import com.auction.bid.global.security.jwt.JWTUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +28,7 @@ public class ProductController {
     }
 
 //    @PutMapping("/{productId}")
-//    public ResponseEntity<?> updateProduct(@PathVariable Long id,
+//    public ResponseEntity<?> updateProduct(@PathVariable(name = "productId") Long id,
 //                                           @Valid @RequestParam("images") List<MultipartFile> images,
 //                                           @ModelAttribute ProductDto.Request request,
 //                                           @RequestHeader(ConstSecurity.AUTHORIZATION) String token){
@@ -38,12 +37,13 @@ public class ProductController {
 //    }
 
     @DeleteMapping("/{productId}")
-    public void deleteProduct(@PathVariable Long id){
+    public void deleteProduct(@PathVariable(name = "productId") Long id){
         productService.delete(id);
     }
 
     @GetMapping("/{productId}")
-    public ResponseEntity<?> getProduct(@PathVariable Long productId){
-        return ResponseEntity.ok(productService.findById(productId));
+    public ResponseEntity<?> getProductDetail(@PathVariable(name = "productId") Long productId){
+        return ResponseEntity.ok(productService.getProductDetail(productId));
     }
+
 }
