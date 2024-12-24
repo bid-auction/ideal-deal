@@ -167,4 +167,14 @@ public class ProductServiceImpl implements ProductService {
 
         return ProductGetDto.Response.fromEntity(product, photos);
     }
+
+    @Override
+    public List<ProductGetDto.Response> getAllProduct(){
+
+        List<Product> product = productRepository.findAll();
+
+        for (int i =0; i< product.size(); i++){
+            List<Photo> photos = photoRepository.findByProductId(product.get(i).getId());
+        }
+    }
 }

@@ -15,4 +15,6 @@ public interface ProductService {
     void delete(Long id);
 
     ProductGetDto.Response getProduct(Long productId);
+
+    List<ProductGetDto.Response> getAllProduct();
 }
