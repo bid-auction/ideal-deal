@@ -1,10 +1,12 @@
 package com.auction.bid.domain.member;
 
+import com.auction.bid.domain.member.dto.ChargeDto;
 import com.auction.bid.domain.member.dto.SignUpDto;
 import com.auction.bid.global.exception.ErrorCode;
 import com.auction.bid.global.exception.exceptions.AuthException;
 import com.auction.bid.global.exception.exceptions.MailException;
 import com.auction.bid.global.exception.exceptions.MemberException;
+import com.auction.bid.global.exception.exceptions.MoneyException;
 import com.auction.bid.global.security.ConstSecurity;
 import com.auction.bid.global.security.RefreshTokenRepository;
 import com.auction.bid.global.security.jwt.JWTUtil;
@@ -19,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -103,6 +104,55 @@ public class MemberServiceImpl implements MemberService{
 
     @Override
     public Member findByMemberUUID(UUID memberUUID) {
+        return memberRepository.findByMemberUUID(memberUUID)
+                .orElseThrow(() -> new MemberException(ErrorCode.NOT_EXIST_MEMBER));
+    }
+
+    @Override
+    public void addMoney(Long memberId, Long amount) {
+        Member findMember = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(ErrorCode.NOT_EXIST_MEMBER));
+
+        findMember.addBalance(amount);
+    }
+
+    @Override
+    public ChargeDto.Response chargeMoney(String token, ChargeDto.Request dtoRequest) {
+        if (token == null || !token.startsWith(ConstSecurity.BEARER)) {
+            throw new AuthException(ErrorCode.INVALID_TOKEN);
+        }
+        Member findMember = getMemberFromToken(token);
+        Long currMoney = findMember.addBalance(dtoRequest.getChargeMoney());
+        return new ChargeDto.Response(currMoney);
+    }
+
+    @Override
+    public Long getMoney(String token) {
+        Member findMember = getMemberFromToken(token);
+        return findMember.getBalance();
+    }
+
+    @Override
+    public void bidToAuction(Member member, Long bidMoney, Long lastMoney) {
+        Long balance = member.getBalance();
+        long neededMoney = bidMoney - lastMoney;
+        if (balance - neededMoney < 0) {
+            throw new MoneyException(ErrorCode.NOT_ENOUGH_MONEY);
+        }
+
+        member.subBalance(neededMoney);
+        memberRepository.save(member);
+    }
+
+    @Override
+    public void withDraw(Long memberId, Long withDrawMoney) {
+        Member findMember = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(ErrorCode.NOT_EXIST_MEMBER));
+        findMember.addBalance(withDrawMoney);
+    }
+
+    private Member getMemberFromToken(String token) {
+        UUID memberUUID = jwtUtil.getMemberUUIDFromToken(token);
         return memberRepository.findByMemberUUID(memberUUID)
                 .orElseThrow(() -> new MemberException(ErrorCode.NOT_EXIST_MEMBER));
     }

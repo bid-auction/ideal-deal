@@ -8,14 +8,13 @@ import com.auction.bid.domain.product.Product;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.w3c.dom.stylesheets.LinkStyle;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ProductDto {
-//
+
     @Builder
     @Getter
     @Setter
@@ -63,6 +62,7 @@ public class ProductDto {
         private String description;
         private List<String> imagePath;
         private Long startBid;
+        private ProductBidPhase productBidPhase;
         private LocalDateTime auctionStart;
         private LocalDateTime auctionEnd;
 
@@ -88,6 +88,7 @@ public class ProductDto {
                     .startBid(product.getStartBid())
                     .auctionStart(product.getAuctionStart())
                     .auctionEnd(product.getAuctionEnd())
+                    .productBidPhase(product.getProductBidPhase())
                     .build();
         }
     }

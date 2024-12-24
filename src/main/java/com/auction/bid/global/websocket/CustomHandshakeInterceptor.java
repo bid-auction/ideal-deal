@@ -2,8 +2,11 @@ package com.auction.bid.global.websocket;
 
 import com.auction.bid.domain.member.Member;
 import com.auction.bid.domain.member.MemberService;
+import com.auction.bid.domain.product.Product;
+import com.auction.bid.domain.product.ProductBidPhase;
 import com.auction.bid.domain.product.ProductService;
 import com.auction.bid.global.exception.ErrorCode;
+import com.auction.bid.global.exception.exceptions.ProductException;
 import com.auction.bid.global.exception.exceptions.SocketException;
 import com.auction.bid.global.security.jwt.JWTUtil;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +16,7 @@ import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
+import java.text.ParseException;
 import java.util.Map;
 import java.util.UUID;
 
@@ -29,8 +33,25 @@ public class CustomHandshakeInterceptor implements HandshakeInterceptor {
 
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Map<String, Object> attributes) {
-        Long productId = getOngoingAuctionProductId(request);
-        if (productId == null) return false;
+        Long productId;
+        try {
+            productId = getProductIdFromURI(request);
+        } catch (SocketException e) {
+            log.info("SocketEx={}", e.getMessage());
+            return false;
+        }
+
+        Product findProduct;
+        try {
+            findProduct = productService.findById(productId);
+        } catch (ProductException e) {
+            log.info("ProductEx={}", e.getMessage());
+            return false;
+        }
+
+        if (findProduct.getProductBidPhase() == ProductBidPhase.ENDED) {
+            return false;
+        }
 
         try {
             String token = request.getHeaders().getFirst("Cookie");
@@ -52,18 +73,21 @@ public class CustomHandshakeInterceptor implements HandshakeInterceptor {
         log.error("AfterHandshake ex=", exception);
     }
 
-    private Long getOngoingAuctionProductId(ServerHttpRequest request) {
+    private Long getProductIdFromURI(ServerHttpRequest request) {
         String path = request.getURI().getPath();
-        log.info(path);
 
         String[] pathSegments = path.split("/");
-        Long id = Long.parseLong(pathSegments[3]);
+
+        Long id;
+        try {
+            id = Long.parseLong(pathSegments[3]);
+        } catch (NumberFormatException e) {
+            throw new SocketException(ErrorCode.INVALID_ACCESS);
+        }
 
         if (pathSegments.length > 4) {
             throw new SocketException(ErrorCode.INVALID_ACCESS);
         }
-
-        if (!productService.isOnGoing(id)) return null;
 
         return id;
     }

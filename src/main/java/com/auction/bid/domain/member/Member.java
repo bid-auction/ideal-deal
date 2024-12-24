@@ -56,7 +56,7 @@ public class Member extends BaseEntity {
     private boolean emailVerified;
 
     @Column(name = "balance")
-    private int balance;
+    private Long balance;
 
     @Column(name = "role")
     private String role;
@@ -64,4 +64,22 @@ public class Member extends BaseEntity {
     @Embedded
     private Address address;
 
+    public Long addBalance(Long chargeMoney) {
+        if (this.balance == null) {
+            setBalance(0L);
+        }
+
+        Long sum = this.balance + chargeMoney;
+        setBalance(sum);
+        return sum;
+    }
+
+    public void subBalance(Long payMoney) {
+        Long sum = this.balance - payMoney;
+        setBalance(sum);
+    }
+
+    private void setBalance(Long balance) {
+        this.balance = balance;
+    }
 }
