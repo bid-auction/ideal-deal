@@ -1,6 +1,5 @@
 package com.auction.bid.global.security;
 
-import com.auction.bid.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 

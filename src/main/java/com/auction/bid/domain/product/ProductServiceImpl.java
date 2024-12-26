@@ -59,6 +59,13 @@ public class ProductServiceImpl implements ProductService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final JWTUtil jwtUtil;
 
+    /**
+     * 상품 등록 메서드
+     * @param images 업로드할 이미지 리스트
+     * @param request 상품 등록 요청 데이터
+     * @param token 인증 토큰
+     * @return 등록된 상품 정보
+     */
     @Override
     public ProductDto.Response register(List<MultipartFile> images, ProductDto.Request request, String token) {
         if (request.getAuctionStart().isBefore(LocalDateTime.now())) {
@@ -86,6 +93,11 @@ public class ProductServiceImpl implements ProductService {
         return ProductDto.Response.fromEntity(savedProduct);
     }
 
+    /**
+     * 사진 업로드 메서드
+     * @param product 상품 엔티티
+     * @param images 업로드할 이미지 리스트
+     */
     private void uploadPhoto(Product product, List<MultipartFile> images){
 
         try {
@@ -103,6 +115,13 @@ public class ProductServiceImpl implements ProductService {
 
     }
 
+    /**
+     * 이미지 파일 저장
+     * @param image 업로드할 이미지 파일
+     * @param uploadsDir 저장 디렉토리 경로
+     * @return 데이터베이스에 저장될 파일 경로
+     * @throws IOException 파일 저장 중 예외
+     */
     private String saveImage(MultipartFile image, String uploadsDir) throws IOException{
         String fileName = UUID.randomUUID().toString().replace("-", "") + "_" + image.getOriginalFilename();
         String filePath = uploadsDir + fileName;
@@ -115,6 +134,10 @@ public class ProductServiceImpl implements ProductService {
         return dbFilePath;
     }
 
+    /**
+     * 경매 시작/종료 시간 스케줄링
+     * @param product 스케줄링할 상품
+     */
     private void scheduleAuction(Product product) {
         Instant startDate = product.getAuctionStart().atZone(Clock.systemDefaultZone().getZone()).toInstant();
         taskScheduler.schedule(() -> auctionScheduler.openAuction(product), startDate);
@@ -123,6 +146,13 @@ public class ProductServiceImpl implements ProductService {
         taskScheduler.schedule(() -> auctionScheduler.closeAuction(product), endDate);
     }
 
+    /**
+     * 상품 ID로 상품을 조회하고 상품의 상태가 ONGOING인지 확인합니다.
+     *
+     * @param productId 조회할 상품의 ID
+     * @return 상품이 ONGOING 상태인지 여부
+     * @throws ProductException 상품이 존재하지 않을 경우 예외 발생
+     */
     @Override
     public boolean isOnGoing(Long productId) {
         Product findProduct = productRepository.findById(productId)
@@ -131,6 +161,12 @@ public class ProductServiceImpl implements ProductService {
         return findProduct.getProductBidPhase().equals(ProductBidPhase.ONGOING);
     }
 
+    /**
+     * 이번 주의 판매 순위를 가져옵니다.
+     * 각 판매 순위는 주간 통계로 계산됩니다.
+     *
+     * @return 주간 판매 순위 (카테고리별로 정렬된 맵 형태)
+     */
     @Override
     public Map<String, List<RankingResponse>> getRankings() {
         LocalDate now = LocalDate.now();
@@ -148,21 +184,54 @@ public class ProductServiceImpl implements ProductService {
         return RankingResponse.fromSaleListToMap(rankingForThisWeek);
     }
 
+    /**
+     * 경매 시작 전(BEFORE) 상태의 상품을 페이지로 반환합니다.
+     *
+     * @param page 페이지 번호
+     * @param size 페이지 크기
+     * @return 경매 시작 전 상품 목록
+     */
     @Override
     public Page<PhaseCriteriaResponse> getBidBefore(int page, int size) {
         return getPhaseResponse(page, size, ProductBidPhase.BEFORE);
     }
 
+    /**
+     * 진행 중(ONGOING) 상태의 상품을 페이지로 반환합니다.
+     *
+     * @param page 페이지 번호
+     * @param size 페이지 크기
+     * @return 진행 중인 상품 목록
+     */
     @Override
     public Page<PhaseCriteriaResponse> getBidOngoing(int page, int size) {
         return getPhaseResponse(page, size, ProductBidPhase.ONGOING);
     }
 
+    /**
+     * 종료된(ENDED) 상태의 상품을 페이지로 반환합니다.
+     *
+     * @param page 페이지 번호
+     * @param size 페이지 크기
+     * @return 종료된 상품 목록
+     */
     @Override
     public Page<PhaseCriteriaResponse> getBidEnded(int page, int size) {
         return getPhaseResponse(page, size, ProductBidPhase.ENDED);
     }
 
+    /**
+     * 상품 정보를 업데이트합니다.
+     *
+     * @param productId 수정할 상품의 ID
+     * @param images 업로드할 이미지 리스트
+     * @param request 상품 수정 요청 데이터
+     * @param token 인증 토큰
+     * @return 수정된 상품 정보
+     * @throws ProductException 상품 제목 중복, 경매 시작/종료 시간 유효성 실패 시 예외 발생
+     * @throws MemberException 회원 정보가 유효하지 않을 경우 예외 발생
+     * @throws CategoryException 카테고리가 존재하지 않을 경우 예외 발생
+     */
     @Override
     public ProductDto.Response update(Long productId, List<MultipartFile> images, ProductDto.Request request, String token) {
 
@@ -200,6 +269,13 @@ public class ProductServiceImpl implements ProductService {
         return ProductDto.Response.fromEntity(savedProduct);
     }
 
+    /**
+     * 인기 상품 목록을 페이지 단위로 반환합니다.
+     *
+     * @param page 요청한 페이지 번호
+     * @param size 한 페이지에 표시할 상품 수
+     * @return 요청된 페이지의 인기 상품 리스트
+     */
     @Override
     public List<HotResponse> getHotPage(int page, int size) {
         int start = (page - 1) * size;
@@ -207,6 +283,13 @@ public class ProductServiceImpl implements ProductService {
         return getHotResponse(start, end);
     }
 
+    /**
+     * 판매가 기준 가장 높은 순으로 상품 순위를 반환합니다.
+     *
+     * @param page 요청한 페이지 번호
+     * @param size 한 페이지에 표시할 순위 수
+     * @return 가장 높은 순위의 상품 리스트
+     */
     @Override
     public Page<RankingResponse> getRankingsHighest(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -214,6 +297,13 @@ public class ProductServiceImpl implements ProductService {
         return RankingResponse.fromSalePageToResPage(highestPage);
     }
 
+    /**
+     * 판매가 기준 가장 낮은 순으로 상품 순위를 반환합니다.
+     *
+     * @param page 요청한 페이지 번호
+     * @param size 한 페이지에 표시할 순위 수
+     * @return 가장 낮은 순위의 상품 리스트
+     */
     @Override
     public Page<RankingResponse> getRankingsLowest(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
@@ -221,6 +311,13 @@ public class ProductServiceImpl implements ProductService {
         return RankingResponse.fromSalePageToResPage(lowestSaleList);
     }
 
+    /**
+     * Redis에 저장된 경매 데이터로부터 인기 상품을 조회합니다.
+     *
+     * @param start 조회 시작 인덱스
+     * @param end 조회 종료 인덱스
+     * @return 인기 상품 리스트
+     */
     @Override
     public List<HotResponse> getHotResponse(int start, int end) {
         HashOperations<String, Long, List<BidDto>> redisHash = redisTemplate.opsForHash();
@@ -255,6 +352,12 @@ public class ProductServiceImpl implements ProductService {
                 .toList();
     }
 
+    /**
+     * 메인 페이지 데이터를 반환합니다.
+     * 인기 상품, 경매 상태별 상품 목록을 포함합니다.
+     *
+     * @return 메인 페이지 응답 데이터
+     */
     @Override
     public MainResponse getMainPage() {
         List<HotResponse> hotPage = getHotPage(1, 10);
@@ -264,6 +367,14 @@ public class ProductServiceImpl implements ProductService {
         return new MainResponse(hotPage, beforePhase, ongoingPhase, endPhase);
     }
 
+    /**
+     * 주어진 경매 상태에 따른 상품 목록을 페이지로 반환합니다.
+     *
+     * @param page 요청한 페이지 번호
+     * @param size 한 페이지에 표시할 상품 수
+     * @param phase 경매 상태 (BEFORE, ONGOING, ENDED)
+     * @return 상태별 상품 페이지
+     */
     private Page<PhaseCriteriaResponse> getPhaseResponse(
             int page,
             int size,
@@ -279,17 +390,37 @@ public class ProductServiceImpl implements ProductService {
         return PageableExecutionUtils.getPage(resList, pageable, productPage::getTotalElements);
     }
 
+    /**
+     * 주어진 상품 ID에 해당하는 상품을 삭제합니다.
+     *
+     * @param productId 삭제할 상품의 ID
+     */
     @Override
     public void delete(Long productId){
         productRepository.deleteById(productId);
     }
 
+    /**
+     * 상품 ID로 상품을 조회합니다.
+     *
+     * @param productId 조회할 상품의 ID
+     * @return 조회된 상품
+     * @throws ProductException 상품이 존재하지 않을 경우 예외 발생
+     */
     @Override
     public Product findById(Long productId) {
         return productRepository.findById(productId)
                 .orElseThrow(() -> new ProductException(ErrorCode.NOT_EXISTS_PRODUCT));
     }
 
+    /**
+     * 상품 ID와 연관된 상품 및 사진 정보를 조회합니다.
+     *
+     * @param productId 조회할 상품의 ID
+     * @return 상품 및 사진 정보
+     * @throws PhotoException 사진이 존재하지 않을 경우 예외 발생
+     * @throws ProductException 상품이 존재하지 않을 경우 예외 발생
+     */
     @Override
     public ProductGetDto.Response getProduct(Long productId){
         List<Photo> photos = photoRepository.findByProductId(productId);

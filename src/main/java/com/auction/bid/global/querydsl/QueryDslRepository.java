@@ -1,7 +1,6 @@
 package com.auction.bid.global.querydsl;
 
 import com.auction.bid.domain.auction.Auction;
-import com.auction.bid.domain.auction.AuctionRepository;
 import com.auction.bid.domain.auction.AuctionStatus;
 import com.auction.bid.domain.bid.Bid;
 import com.auction.bid.domain.product.Product;

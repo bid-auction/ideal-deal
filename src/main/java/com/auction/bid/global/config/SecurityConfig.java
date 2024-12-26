@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -74,15 +73,7 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable);
 
         http
-                .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers(HttpMethod.POST,
-                                "/api/member/auth/signup",
-                                "/api/member/auth/send-email",
-                                "/api/member/auth/verify-email").permitAll()
-                        .requestMatchers("/login").permitAll()
-//                        .requestMatchers(HttpMethod.GET,
-//                                "/api/member/test").permitAll()
-                        .anyRequest().authenticated());
+                .authorizeHttpRequests((auth) -> auth.anyRequest().permitAll());
 
         http
                 .oauth2Login(oauth ->

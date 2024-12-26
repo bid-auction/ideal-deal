@@ -41,6 +41,14 @@ public class QueryDslRepositoryImpl implements QueryDslRepository{
         this.queryFactory = new JPAQueryFactory(em);
     }
 
+    /**
+     * 이번 주의 최고 및 최저 판매 목록을 반환합니다.
+     *
+     * @param startOfWeek 이번 주의 시작 시간
+     * @param endOfWeek 이번 주의 종료 시간
+     * @param pageable 페이지 정보
+     * @return 판매 목록 (최고 판매, 최저 판매)
+     */
     @Override
     public Map<String, List<Sale>> findTop10SaleThisWeek(
             LocalDateTime startOfWeek,
@@ -56,16 +64,34 @@ public class QueryDslRepositoryImpl implements QueryDslRepository{
         return res;
     }
 
+    /**
+     * 최고 판매 목록을 반환합니다.
+     *
+     * @param pageable 페이지 정보
+     * @return 최고 판매 목록
+     */
     @Override
     public Page<Sale> getHighestSaleList(Pageable pageable) {
         return getSales(pageable, sale.salePrice.desc());
     }
 
+    /**
+     * 최저 판매 목록을 반환합니다.
+     *
+     * @param pageable 페이지 정보
+     * @return 최저 판매 목록
+     */
     @Override
     public Page<Sale> getLowestSaleList(Pageable pageable) {
         return getSales(pageable, sale.salePrice.asc());
     }
 
+    /**
+     * 주어진 제품 ID 목록에 해당하는 모든 제품을 반환합니다.
+     *
+     * @param productIds 제품 ID 목록
+     * @return 제품 목록
+     */
     @Override
     public List<Product> findAllByProductIds(List<Long> productIds) {
         return queryFactory
@@ -75,6 +101,13 @@ public class QueryDslRepositoryImpl implements QueryDslRepository{
                 .fetch();
     }
 
+    /**
+     * 지정된 입찰 단계에 해당하는 제품 목록을 반환합니다.
+     *
+     * @param phase 입찰 단계
+     * @param pageable 페이지 정보
+     * @return 제품 목록
+     */
     @Override
     public Page<Product> getProductByPhase(ProductBidPhase phase, Pageable pageable) {
         List<Product> products = queryFactory
@@ -94,6 +127,14 @@ public class QueryDslRepositoryImpl implements QueryDslRepository{
         return PageableExecutionUtils.getPage(products, pageable, countQuery::fetchOne);
     }
 
+    /**
+     * 지정된 회원의 경매 목록을 반환합니다.
+     *
+     * @param memberUUID 회원의 UUID
+     * @param pageable 페이지 정보
+     * @param auctionStatus 경매 상태
+     * @return 경매 목록
+     */
     @Override
     public Page<Auction> getAuctionList(UUID memberUUID, Pageable pageable, AuctionStatus auctionStatus) {
         BooleanExpression condition =
@@ -124,6 +165,12 @@ public class QueryDslRepositoryImpl implements QueryDslRepository{
         return PageableExecutionUtils.getPage(auctionList, pageable, countQuery::fetchOne);
     }
 
+    /**
+     * 주어진 제품 ID에 해당하는 모든 입찰 목록을 반환합니다.
+     *
+     * @param productId 제품 ID
+     * @return 입찰 목록
+     */
     @Override
     public List<Bid> findAllByProductId(Long productId) {
         return queryFactory
@@ -134,6 +181,12 @@ public class QueryDslRepositoryImpl implements QueryDslRepository{
                 .fetch();
     }
 
+    /**
+     * 경매를 로드하고 연관된 모든 엔티티를 함께 로딩합니다.
+     *
+     * @param auctionId 경매 ID
+     * @return 경매 객체
+     */
     @Override
     public Auction getAuctionEagerly(Long auctionId) {
         return queryFactory
@@ -144,6 +197,14 @@ public class QueryDslRepositoryImpl implements QueryDslRepository{
                 .fetchOne();
     }
 
+    /**
+     * 회원의 판매 목록을 반환합니다.
+     *
+     * @param memberUUID 회원 UUID
+     * @param pageable 페이지 정보
+     * @param saleStatus 판매 상태
+     * @return 판매 목록
+     */
     @Override
     public List<Sale> getSaleList(UUID memberUUID, Pageable pageable, SaleStatus saleStatus) {
         BooleanExpression condition =
@@ -164,6 +225,12 @@ public class QueryDslRepositoryImpl implements QueryDslRepository{
                 .fetch();
     }
 
+    /**
+     * 판매를 로드하고 연관된 모든 엔티티를 함께 로딩합니다.
+     *
+     * @param saleId 판매 ID
+     * @return 판매 객체
+     */
     @Override
     public Sale getSaleEagerly(Long saleId) {
         return queryFactory
@@ -174,6 +241,15 @@ public class QueryDslRepositoryImpl implements QueryDslRepository{
                 .fetchOne();
     }
 
+    /**
+     * 이번 주의 판매 목록을 가져옵니다. (판매 성공 상태, 주어진 기간 내)
+     *
+     * @param startOfWeek 시작 시간 (이번 주 시작)
+     * @param endOfWeek 종료 시간 (이번 주 종료)
+     * @param pageable 페이지 정보
+     * @param orderSpecifier 정렬 조건
+     * @return 판매 목록
+     */
     private List<Sale> getSales(LocalDateTime startOfWeek, LocalDateTime endOfWeek, Pageable pageable, OrderSpecifier<?> orderSpecifier) {
         return queryFactory
                 .selectFrom(sale)
@@ -189,6 +265,13 @@ public class QueryDslRepositoryImpl implements QueryDslRepository{
                 .fetch();
     }
 
+    /**
+     * 판매 목록을 가져옵니다. (판매 성공 상태)
+     *
+     * @param pageable 페이지 정보
+     * @param orderSpecifier 정렬 조건
+     * @return 판매 목록
+     */
     private Page<Sale> getSales(Pageable pageable, OrderSpecifier<?> orderSpecifier) {
         List<Sale> saleList = queryFactory
                 .selectFrom(sale)

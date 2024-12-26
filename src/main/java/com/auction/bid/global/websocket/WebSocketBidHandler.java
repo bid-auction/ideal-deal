@@ -41,6 +41,12 @@ public class WebSocketBidHandler extends TextWebSocketHandler {
     private final Set<WebSocketSession> sessions = new HashSet<>();
     private final Map<Long, Set<WebSocketSession>> roomSessionMap = new HashMap<>();
 
+    /**
+     * WebSocket 연결이 확립된 후 호출됩니다.
+     * 새로운 세션을 활성 세션 목록에 추가하고, 현재 입찰 정보를 전송합니다.
+     *
+     * @param session 새로 연결된 WebSocket 세션
+     */
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         Map<String, Object> attributes = session.getAttributes();
@@ -66,6 +72,13 @@ public class WebSocketBidHandler extends TextWebSocketHandler {
         }
     }
 
+    /**
+     * 입찰 메시지를 처리하고, 입찰 조건을 확인한 후, 입찰 기록을 업데이트합니다.
+     *
+     * @param session WebSocket 세션
+     * @param message 입찰 메시지
+     * @throws Exception 메시지 처리 중 예외 발생 시
+     */
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         Map<String, Object> attributes = session.getAttributes();
@@ -121,8 +134,6 @@ public class WebSocketBidHandler extends TextWebSocketHandler {
                 return;
             }
         }
-        // 세션을 기준으로 돈 작성 시에 새로운 세션에의 같은 멤버는 제대로 된 입찰이 불가능 해짐
-        // 추후에 레디스를 이용해 별도로 입찰 금액을 꺼내와야 됨
 
         try {
             Long lastMoney = (Long) attributes.get("lastMoney");
@@ -145,6 +156,12 @@ public class WebSocketBidHandler extends TextWebSocketHandler {
         sendMessageToBidRoom(response, bidRoomSessions);
     }
 
+    /**
+     * WebSocket 연결이 종료된 후 호출됩니다. 세션을 목록에서 제거하고, 시청자 수를 업데이트합니다.
+     *
+     * @param session 종료된 WebSocket 세션
+     * @param status 종료 상태
+     */
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         Map<String, Object> attributes = session.getAttributes();
@@ -162,6 +179,13 @@ public class WebSocketBidHandler extends TextWebSocketHandler {
         log.info("{} 연결 끊김", member.getId());
     }
 
+    /**
+     * 경매 진행 상태(입찰 단계)를 변경하고, 해당 상태를 모든 WebSocket 클라이언트에게 전송합니다.
+     * 경매가 종료된 경우, 모든 WebSocket 세션을 종료합니다.
+     *
+     * @param productId 경매 상품 ID
+     * @param phase 변경될 입찰 단계
+     */
     public void phaseChange(Long productId, ProductBidPhase phase) {
         Set<WebSocketSession> webSocketSessions = getWebSocketSessions(productId);
         webSocketSessions.parallelStream()
@@ -173,12 +197,23 @@ public class WebSocketBidHandler extends TextWebSocketHandler {
 
     }
 
+    /**
+     * 경매 방에 있는 모든 사용자에게 입찰 정보를 전송합니다.
+     *
+     * @param res 입찰 정보
+     * @param bidRoomSession 경매 방에 참여한 WebSocket 세션들
+     */
     private void sendMessageToBidRoom(MessageDto.Response res, Set<WebSocketSession> bidRoomSession) {
         bidRoomSession.parallelStream()
                 .filter(WebSocketSession::isOpen)
                 .forEach(sess -> sendMessage(sess, res));
     }
 
+    /**
+     * 경매 방에 있는 모든 사용자에게 현재 시청자 수를 전송합니다.
+     *
+     * @param bidRoomSession 경매 방에 참여한 WebSocket 세션들
+     */
     private void sendViewerCountToBidRoom(Set<WebSocketSession> bidRoomSession) {
         String viewerCnt = "viewerCount : " + bidRoomSession.size();
         bidRoomSession.parallelStream()
@@ -186,7 +221,13 @@ public class WebSocketBidHandler extends TextWebSocketHandler {
                 .forEach(sess -> sendMessage(sess, viewerCnt));
     }
 
-
+    /**
+     * WebSocket 세션에 메시지를 전송합니다.
+     *
+     * @param session 메시지를 받을 WebSocket 세션
+     * @param message 전송할 메시지
+     * @param <T> 메시지 타입
+     */
     private <T> void sendMessage(WebSocketSession session, T message) {
         try {
             session.sendMessage(new TextMessage(objectMapper.writeValueAsString(message)));
@@ -195,6 +236,12 @@ public class WebSocketBidHandler extends TextWebSocketHandler {
         }
     }
 
+    /**
+     * 입장할 때의 입찰 중인 정보 전달.
+     *
+     * @param bidDto 입찰 정보
+     * @param session 입찰자 WebSocket 세션
+     */
     private void sendMessageToEntrant(BidDto bidDto, WebSocketSession session) {
         try {
             session.sendMessage(new TextMessage(objectMapper.writeValueAsString(bidDto)));
@@ -203,6 +250,12 @@ public class WebSocketBidHandler extends TextWebSocketHandler {
         }
     }
 
+    /**
+     * 특정 경매 상품에 연결된 모든 WebSocket 세션을 반환합니다.
+     *
+     * @param productId 경매 상품 ID
+     * @return 해당 경매 상품에 연결된 WebSocket 세션들
+     */
     private Set<WebSocketSession> getWebSocketSessions(Long productId) {
         if (!roomSessionMap.containsKey(productId)) {
             roomSessionMap.put(productId, new HashSet<>());
@@ -212,6 +265,13 @@ public class WebSocketBidHandler extends TextWebSocketHandler {
         return webSocketSessions;
     }
 
+    /**
+     * 경매 방에 새로 접속한 사용자 세션을 추가하고, 연결되어 있지 않은 세션들은 제거합니다.
+     *
+     * @param productId 경매 상품 ID
+     * @param webSocketSession 새로 접속한 WebSocket 세션
+     * @return 접속된 세션들
+     */
     private Set<WebSocketSession> getSocketSetWhenEntered(Long productId, WebSocketSession webSocketSession) {
         if (!roomSessionMap.containsKey(productId)) {
             roomSessionMap.put(productId, new HashSet<>());
@@ -226,10 +286,21 @@ public class WebSocketBidHandler extends TextWebSocketHandler {
         return webSocketSessions;
     }
 
+    /**
+     * 종료된 WebSocket 세션을 목록에서 제거합니다.
+     *
+     * @param bidRoomSession 경매 방에 있는 WebSocket 세션들
+     */
     private void removeClosedSession(Set<WebSocketSession> bidRoomSession) {
         bidRoomSession.removeIf(sess -> !sessions.contains(sess));
     }
 
+    /**
+     * Redis에서 해당 경매 상품의 입찰 내역을 가져옵니다.
+     *
+     * @param productId 경매 상품 ID
+     * @return 해당 상품의 입찰 내역
+     */
     private List<BidDto> bidListFromRedis(Long productId) {
         HashOperations<String, Long, List<BidDto>> auctionRedis = redisTemplate.opsForHash();
         if (!auctionRedis.hasKey(AUCTION, productId)) return new ArrayList<>();
@@ -237,6 +308,11 @@ public class WebSocketBidHandler extends TextWebSocketHandler {
         return auctionRedis.get(AUCTION, productId);
     }
 
+    /**
+     * 경매 방에 있는 모든 WebSocket 세션을 종료합니다.
+     *
+     * @param bidRoomSession 경매 방에 있는 WebSocket 세션들
+     */
     private void closeAllSessions(Set<WebSocketSession> bidRoomSession) {
         Iterator<WebSocketSession> iterator = bidRoomSession.iterator();
 
@@ -268,6 +344,14 @@ public class WebSocketBidHandler extends TextWebSocketHandler {
         }
     }
 
+    /**
+     * 입찰 정보를 Redis에 저장합니다.
+     *
+     * @param productId 경매 상품 ID
+     * @param member 입찰자
+     * @param dtoRequest 입찰 요청 정보
+     * @param bidList 기존 입찰 내역
+     */
     private void putInRedis(Long productId, Member member, MessageDto.Request dtoRequest, List<BidDto> bidList) {
         bidList.add(BidDto.builder()
                 .productId(productId)
@@ -280,6 +364,13 @@ public class WebSocketBidHandler extends TextWebSocketHandler {
         auctionRedis.put(AUCTION, productId, bidList);
     }
 
+    /**
+     * 입찰 내역에서 현재 최고 입찰 금액을 반환합니다.
+     *
+     * @param bidList 입찰 내역
+     * @param startBid 경매 시작 금액
+     * @return 현재 최고 입찰 금액
+     */
     private Long getMaxBidAmount(List<BidDto> bidList, long startBid) {
         if (bidList.isEmpty()) {
             return startBid - 1;

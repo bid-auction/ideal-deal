@@ -4,7 +4,6 @@ package com.auction.bid.domain.product.dto;
 import com.auction.bid.domain.sale.Sale;
 import lombok.*;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.support.PageableExecutionUtils;
 
 import java.util.HashMap;

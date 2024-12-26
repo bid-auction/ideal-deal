@@ -2,16 +2,13 @@ package com.auction.bid.domain.product.dto;
 
 import com.auction.bid.domain.category.Category;
 import com.auction.bid.domain.member.Member;
-import com.auction.bid.domain.photo.Photo;
-import com.auction.bid.domain.product.ProductBidPhase;
 import com.auction.bid.domain.product.Product;
+import com.auction.bid.domain.product.ProductBidPhase;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class ProductDto {
 

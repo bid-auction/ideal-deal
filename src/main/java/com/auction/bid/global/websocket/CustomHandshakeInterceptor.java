@@ -16,7 +16,6 @@ import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
-import java.text.ParseException;
 import java.util.Map;
 import java.util.UUID;
 
@@ -31,6 +30,15 @@ public class CustomHandshakeInterceptor implements HandshakeInterceptor {
     private final MemberService memberService;
     private final ProductService productService;
 
+    /**
+     * WebSocket 핸드쉐이크 전에 실행되는 메서드로, 요청 헤더에서 상품 ID와 사용자 인증을 처리합니다.
+     *
+     * @param request 요청 정보
+     * @param response 응답 정보
+     * @param wsHandler WebSocket 핸들러
+     * @param attributes WebSocket 세션 속성
+     * @return 인증이 성공하면 true, 그렇지 않으면 false
+     */
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Map<String, Object> attributes) {
         Long productId;
@@ -73,6 +81,13 @@ public class CustomHandshakeInterceptor implements HandshakeInterceptor {
         log.error("AfterHandshake ex=", exception);
     }
 
+    /**
+     * 요청 URI에서 상품 ID를 추출하는 메서드입니다.
+     *
+     * @param request 요청 정보
+     * @return 상품 ID
+     * @throws SocketException 잘못된 URI 형식일 경우 예외를 던집니다.
+     */
     private Long getProductIdFromURI(ServerHttpRequest request) {
         String path = request.getURI().getPath();
 
