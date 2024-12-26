@@ -1,25 +1,35 @@
 package com.auction.bid.domain.member;
 
-import com.auction.bid.domain.member.dto.ChargeDto;
-import com.auction.bid.domain.member.dto.SignUpDto;
+import com.auction.bid.domain.auction.Auction;
+import com.auction.bid.domain.auction.AuctionStatus;
+import com.auction.bid.domain.bid.Bid;
+import com.auction.bid.domain.member.dto.*;
+import com.auction.bid.domain.sale.Sale;
+import com.auction.bid.domain.sale.SaleStatus;
 import com.auction.bid.global.exception.ErrorCode;
 import com.auction.bid.global.exception.exceptions.AuthException;
 import com.auction.bid.global.exception.exceptions.MailException;
 import com.auction.bid.global.exception.exceptions.MemberException;
 import com.auction.bid.global.exception.exceptions.MoneyException;
+import com.auction.bid.global.querydsl.QueryDslRepository;
 import com.auction.bid.global.security.ConstSecurity;
 import com.auction.bid.global.security.RefreshTokenRepository;
 import com.auction.bid.global.security.jwt.JWTUtil;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -35,6 +45,7 @@ public class MemberServiceImpl implements MemberService{
     private final JWTUtil jwtUtil;
     private final RedisTemplate<String, Object> redisTemplate;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final QueryDslRepository queryDslRepository;
 
     @Override
     public SignUpDto.Response signUp(SignUpDto.Request request) {
@@ -95,11 +106,11 @@ public class MemberServiceImpl implements MemberService{
         }
 
         String jwtToken = jwtUtil.getTokenFromHeader(token);
-        String memberId = jwtUtil.getMemberStrUUIDFromToken(jwtToken);
+        String memberUUID = jwtUtil.getMemberStrUUIDFromToken(jwtToken);
         redisTemplate.opsForValue().set(jwtToken, ConstSecurity.BLACK_LIST, 1, TimeUnit.DAYS);
-        refreshTokenRepository.deleteByMemberId(UUID.fromString(memberId));
+        refreshTokenRepository.deleteByMemberId(UUID.fromString(memberUUID));
 
-        return memberId;
+        return memberUUID;
     }
 
     @Override
@@ -110,7 +121,7 @@ public class MemberServiceImpl implements MemberService{
 
     @Override
     public void addMoney(Long memberId, Long amount) {
-        Member findMember = memberRepository.findById(memberId)
+        Member findMember = memberRepository.lockMemberForUpdate(memberId)
                 .orElseThrow(() -> new MemberException(ErrorCode.NOT_EXIST_MEMBER));
 
         findMember.addBalance(amount);
@@ -146,9 +157,56 @@ public class MemberServiceImpl implements MemberService{
 
     @Override
     public void withDraw(Long memberId, Long withDrawMoney) {
-        Member findMember = memberRepository.findById(memberId)
+        Member findMember = memberRepository.lockMemberForUpdate(memberId)
                 .orElseThrow(() -> new MemberException(ErrorCode.NOT_EXIST_MEMBER));
+
         findMember.addBalance(withDrawMoney);
+    }
+
+    @Override
+    public Page<AuctionHistoryDto> getAuctionHistory(String token, int page, int size, AuctionStatus auctionStatus) {
+        Pageable pageable = PageRequest.of(page, size);
+        UUID memberUUID = jwtUtil.getMemberUUIDFromToken(token);
+        Page<Auction> auctionPage = queryDslRepository.getAuctionList(memberUUID, pageable, auctionStatus);
+        List<AuctionHistoryDto> auctionList = auctionPage.stream()
+                .map(AuctionHistoryDto::fromAuction)
+                .toList();
+
+        return PageableExecutionUtils.getPage(auctionList, pageable, auctionPage::getTotalElements);
+    }
+
+    @Override
+    public DetailAuctionHistoryDto getAuctionDetail(String token, Long auctionId) {
+        UUID memberUUID = jwtUtil.getMemberUUIDFromToken(token);
+        Member findMember = memberRepository.findByMemberUUID(memberUUID)
+                .orElseThrow(() -> new MemberException(ErrorCode.NOT_EXIST_MEMBER));
+        Auction findAuction = queryDslRepository.getAuctionEagerly(auctionId);
+        List<BidHistoryDto> bidDtoList = getBidDtoList(findAuction.getProduct().getId());
+        return DetailAuctionHistoryDto.fromAuction(findAuction, findMember.getId(), bidDtoList);
+    }
+
+    @Override
+    public List<SaleHistoryDto> getSaleHistory(String token, int page, int size, SaleStatus saleStatus) {
+        Pageable pageable = PageRequest.of(page, size);
+        UUID memberUUID = jwtUtil.getMemberUUIDFromToken(token);
+        List<Sale> saleList = queryDslRepository.getSaleList(memberUUID, pageable, saleStatus);
+        return saleList.stream()
+                .map(SaleHistoryDto::fromSale)
+                .toList();
+    }
+
+    @Override
+    public DetailSaleHistoryDto getSaleDetail(Long saleId) {
+        Sale findSale = queryDslRepository.getSaleEagerly(saleId);
+        List<BidHistoryDto> bidDtoList = getBidDtoList(findSale.getProduct().getId());
+        return DetailSaleHistoryDto.fromSale(findSale, bidDtoList);
+    }
+
+    private List<BidHistoryDto> getBidDtoList(Long productId) {
+        List<Bid> bidList = queryDslRepository.findAllByProductId(productId);
+        return bidList.stream()
+                .map(BidHistoryDto::fromBidEntity)
+                .toList();
     }
 
     private Member getMemberFromToken(String token) {

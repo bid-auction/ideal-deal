@@ -27,9 +27,8 @@ public class Photo extends BaseEntity {
     @Column(nullable = false)
     private String imagePath;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="product_id", nullable = false)
-//    @OnDelete(action = OnDeleteAction.CASCADE)
     private Product product;
 
     public Photo(String dbImagePath, Product product) {
@@ -37,4 +36,7 @@ public class Photo extends BaseEntity {
         this.product = product;
     }
 
+    public void assignProduct(Product product) {
+        this.product = product;
+    }
 }

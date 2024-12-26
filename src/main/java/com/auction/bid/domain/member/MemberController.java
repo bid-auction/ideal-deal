@@ -1,9 +1,11 @@
 package com.auction.bid.domain.member;
 
+import com.auction.bid.domain.auction.AuctionStatus;
 import com.auction.bid.domain.member.dto.ChargeDto;
 import com.auction.bid.domain.member.dto.EmailDto;
 import com.auction.bid.domain.member.dto.SignUpDto;
 import com.auction.bid.domain.member.dto.TokenVerificationDto;
+import com.auction.bid.domain.sale.SaleStatus;
 import com.auction.bid.global.security.ConstSecurity;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -55,6 +57,43 @@ public class MemberController {
         return ResponseEntity.ok(memberService.getMoney(token));
     }
 
-    // 충전 내역 전체 조회 만들지 필요(만들면 entity, repository 만들어야 됨)
-    // 멤버 register할 때 balance를 0L로 등록하기(안하면 NULL이 들어가있음)
+    @PreAuthorize(ConstSecurity.HAS_ROLE_MEMBER)
+    @GetMapping("/auction")
+    public ResponseEntity<?> getAuctionHistory(
+            @RequestHeader(ConstSecurity.AUTHORIZATION) String token,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) AuctionStatus auctionStatus
+    ) {
+        return ResponseEntity.ok(memberService.getAuctionHistory(token, page, size, auctionStatus));
+    }
+
+    @PreAuthorize(ConstSecurity.HAS_ROLE_MEMBER)
+    @GetMapping("/auction/{auctionId}")
+    public ResponseEntity<?> getAuctionDetail(
+            @RequestHeader(ConstSecurity.AUTHORIZATION) String token,
+            @PathVariable(name = "auctionId") Long auctionId
+    ) {
+        return ResponseEntity.ok(memberService.getAuctionDetail(token, auctionId));
+    }
+
+    @PreAuthorize(ConstSecurity.HAS_ROLE_MEMBER)
+    @GetMapping("/sale")
+    public ResponseEntity<?> getSaleHistory(
+            @RequestHeader(ConstSecurity.AUTHORIZATION) String token,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) SaleStatus saleStatus
+    ) {
+        return ResponseEntity.ok(memberService.getSaleHistory(token, page, size, saleStatus));
+    }
+
+    @PreAuthorize(ConstSecurity.HAS_ROLE_MEMBER)
+    @GetMapping("/sale/{saleId}")
+    public ResponseEntity<?> getSaleDetail(
+            @PathVariable(name = "saleId") Long saleId
+    ) {
+        return ResponseEntity.ok(memberService.getSaleDetail(saleId));
+    }
+
 }
