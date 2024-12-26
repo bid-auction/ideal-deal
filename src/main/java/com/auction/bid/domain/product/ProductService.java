@@ -14,7 +14,13 @@ public interface ProductService {
 
     void delete(Long id);
 
-    ProductGetDto.Response getProduct(Long productId);
 
-    List<ProductGetDto.Response> getAllProduct();
+    ProductDto.Response getProductDetail(Long productId);
+
+    Product findById(Long productId);
+
+    boolean isOnGoing(Long productId);
+
+
+
 }

@@ -15,7 +15,9 @@ import com.auction.bid.domain.sale.SaleRepository;
 import com.auction.bid.domain.sale.SaleStatus;
 import com.auction.bid.global.exception.ErrorCode;
 import com.auction.bid.global.exception.exceptions.MemberException;
+import com.auction.bid.global.exception.exceptions.MoneyException;
 import com.auction.bid.global.exception.exceptions.ProductException;
+import com.auction.bid.global.websocket.WebSocketBidHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,14 +39,19 @@ public class SchedulerService {
     private final MemberRepository memberRepository;
     private final AuctionRepository auctionRepository;
     private final SaleRepository saleRepository;
-
+    private final WebSocketBidHandler webSocketBidHandler;
 
     public void changeAuctionPhase(Product product, ProductBidPhase productBidPhase) {
         product.changeAuctionPhase(productBidPhase);
         productRepository.save(product);
+        webSocketBidHandler.phaseChange(product.getId(), productBidPhase);
     }
 
     public void saveBids(Long productId, List<BidDto> bidDtoList) {
+        if (bidDtoList.isEmpty()) {
+            return;
+        }
+
         Product findProduct = productRepository.findById(productId)
                 .orElseThrow(() -> new ProductException(ErrorCode.NOT_EXISTS_PRODUCT));
 

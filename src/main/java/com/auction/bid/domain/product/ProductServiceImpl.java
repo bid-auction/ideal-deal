@@ -1,13 +1,14 @@
 package com.auction.bid.domain.product;
 
 import com.auction.bid.domain.category.Category;
+import com.auction.bid.domain.category.CategoryRepository;
 import com.auction.bid.domain.member.Member;
 import com.auction.bid.domain.member.MemberRepository;
 import com.auction.bid.domain.photo.Photo;
-import com.auction.bid.domain.product.dto.ProductDto;
-import com.auction.bid.domain.category.CategoryRepository;
 import com.auction.bid.domain.photo.PhotoRepository;
-import com.auction.bid.domain.product.dto.ProductGetDto;
+
+
+import com.auction.bid.domain.product.dto.ProductDto;
 import com.auction.bid.global.exception.ErrorCode;
 import com.auction.bid.global.exception.exceptions.CategoryException;
 import com.auction.bid.global.exception.exceptions.MemberException;
@@ -30,7 +31,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -38,7 +38,7 @@ import java.util.UUID;
 @Transactional
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
-//
+
     private final ProductRepository productRepository;
     private final PhotoRepository photoRepository;
     private final MemberRepository memberRepository;
@@ -77,6 +77,27 @@ public class ProductServiceImpl implements ProductService {
         taskScheduler.schedule(() -> auctionScheduler.closeAuction(product), endDate);
 
         return ProductDto.Response.fromEntity(savedProduct);
+    }
+
+    @Override
+    public ProductDto.Response getProductDetail(Long productId){
+        List<Photo> photos = photoRepository.findByProductId(productId);
+        if (photos.isEmpty()){
+            throw new PhotoException(ErrorCode.PHOTO_NOT_FOUND);
+        }
+
+        Product findProduct = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductException(ErrorCode.NOT_EXISTS_PRODUCT));
+
+        return ProductDto.Response.fromEntity(findProduct, photos);
+    }
+
+    @Override
+    public boolean isOnGoing(Long productId) {
+        Product findProduct = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductException(ErrorCode.NOT_EXISTS_PRODUCT));
+
+        return findProduct.getProductBidPhase().equals(ProductBidPhase.ONGOING);
     }
 
     private void uploadPhoto(Product product, List<MultipartFile> images){
@@ -150,31 +171,16 @@ public class ProductServiceImpl implements ProductService {
         return ProductDto.Response.fromEntity(savedProduct);
     }
 
+
     @Override
     public void delete(Long productId){
          productRepository.deleteById(productId);
     }
 
-    @Override
-    public ProductGetDto.Response getProduct(Long productId){
-        List<Photo> photos = photoRepository.findByProductId(productId);
-        if (photos.isEmpty()){
-            throw new IllegalArgumentException("Photos not found");
-        }
-
-        Product product = productRepository.findById(productId)
-                .orElseThrow(()->new IllegalArgumentException("Product not found"));
-
-        return ProductGetDto.Response.fromEntity(product, photos);
+ 
+    public Product findById(Long productId) {
+        return productRepository.findById(productId)
+                .orElseThrow(() -> new ProductException(ErrorCode.NOT_EXISTS_PRODUCT));
     }
 
-    @Override
-    public List<ProductGetDto.Response> getAllProduct(){
-
-        List<Product> product = productRepository.findAll();
-
-        for (int i =0; i< product.size(); i++){
-            List<Photo> photos = photoRepository.findByProductId(product.get(i).getId());
-        }
-    }
 }

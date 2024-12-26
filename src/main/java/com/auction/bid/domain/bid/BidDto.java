@@ -1,9 +1,8 @@
 package com.auction.bid.domain.bid;
 
-import com.auction.bid.domain.auction.Auction;
-import com.auction.bid.domain.auction.AuctionStatus;
 import com.auction.bid.domain.member.Member;
 import com.auction.bid.domain.product.Product;
+import com.auction.bid.domain.product.ProductBidPhase;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,6 +25,16 @@ public class BidDto {
     private String nickname;
     private Long bidAmount;
     private LocalDateTime bidTime;
+
+    public static BidDto emptyDtoList(Long productId) {
+        return BidDto.builder()
+                .productId(productId)
+                .memberId(null)
+                .nickname(null)
+                .bidAmount(null)
+                .bidTime(null)
+                .build();
+    }
 
     public static Bid toBidEntity(BidDto bidDto, Member member, Product product) {
 
@@ -83,4 +92,5 @@ public class BidDto {
                 .bidTime(bidTime)
                 .build();
     }
+
 }

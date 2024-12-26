@@ -19,31 +19,4 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class AuctionServiceImpl implements AuctionService {
 
-//    private final ProductRepository productRepository;
-//    private final MemberRepository memberRepository;
-//    private final AuctionRepository auctionRepository;
-//
-//    @Override
-//    public void saveAuction(Long winnerId, Long productId, Long finalAmount, List<BidDto> bidDtoList) {
-//        if (bidDtoList.isEmpty()) return;
-//
-//        Product findProduct = productRepository.findById(productId)
-//                .orElseThrow(() -> new ProductException(ErrorCode.NOT_EXISTS_PRODUCT));
-//
-//        List<Long> memberIds = bidDtoList.stream()
-//                .map(BidDto::getMemberId)
-//                .distinct()
-//                .toList();
-//
-//        List<Member> findMemberList = memberRepository.findAllById(memberIds);
-//
-//        findMemberList.forEach(member -> {
-//            if (Objects.equals(member.getId(), winnerId)) {
-//                auctionRepository.save(Auction.fromBid(member, findProduct, finalAmount, AuctionStatus.BID_SUCCESS));
-//            } else {
-//                auctionRepository.save(Auction.fromBid(member, findProduct, finalAmount, AuctionStatus.BID_FAILURE));
-//            }
-//        });
-//    }
-
 }
