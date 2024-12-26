@@ -2,14 +2,16 @@ package com.auction.bid.global.scheduler;
 
 import com.auction.bid.domain.bid.BidDto;
 import com.auction.bid.domain.member.MemberService;
-import com.auction.bid.domain.product.ProductBidPhase;
 import com.auction.bid.domain.product.Product;
+import com.auction.bid.domain.product.ProductBidPhase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.Duration;
@@ -28,7 +30,13 @@ public class AuctionScheduler {
     private final SchedulerService schedulerService;
     private final MemberService memberService;
 
+    /**
+     * 경매 시작 시 호출되는 메서드입니다.
+     *
+     * @param product 경매가 시작된 상품
+     */
     @TransactionalEventListener
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Async
     public void openAuction(Product product) {
         log.info("경매 시작={}", product.getAuctionStart());
@@ -42,9 +50,15 @@ public class AuctionScheduler {
         redisTemplate.expire(AUCTION, ttl, TimeUnit.SECONDS);
     }
 
+    /**
+     * 경매 종료 시 호출되는 메서드입니다.
+     *
+     * @param product 경매가 종료된 상품
+     */
+    @TransactionalEventListener
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Async
     public void closeAuction(Product product) {
-        // 트랜잭션 관리 제대로 해야됨 추후에 생각해볼것
         log.info("경매 종료={}", product.getAuctionEnd());
         schedulerService.changeAuctionPhase(product, ProductBidPhase.ENDED);
 
@@ -53,30 +67,21 @@ public class AuctionScheduler {
                 .convertToBidDtoList(openedAuctionRedis.get(AUCTION, product.getId()));
 
         BidDto successBidDto = bidDtoList.isEmpty() ? new BidDto() : bidDtoList.get(bidDtoList.size() - 1);
-        Long successMemberId = successBidDto.getMemberId();
         Long finalAmount = successBidDto.getBidAmount();
         Long finalBuyerId = successBidDto.getMemberId();
-        
+
         Map<Long, Long> withDrawMap = new HashMap<>();
         for (int i = bidDtoList.size() - 2; i >= 0; i--) {
             BidDto bidDto = bidDtoList.get(i);
-            if (Objects.equals(bidDto.getMemberId(), successMemberId)) continue;
+            if (Objects.equals(bidDto.getMemberId(), finalBuyerId)) continue;
             Long memberId = bidDto.getMemberId();
             Long bidAmount = bidDto.getBidAmount();
-            
+
             if (withDrawMap.containsKey(memberId)) continue;
             withDrawMap.put(memberId, bidAmount);
         }
 
-        for (Map.Entry<Long, Long> entry : withDrawMap.entrySet()) {
-            Long memberId = entry.getKey();
-            Long bidAmount = entry.getValue();
-            memberService.withDraw(memberId, bidAmount);
-        }
-
-        if (successMemberId != null) {
-            memberService.addMoney(product.getMember().getId(), finalAmount);
-        }
+        processWithdrawalsAndPayout(product, withDrawMap, finalBuyerId, finalAmount);
 
         schedulerService.saveBids(product.getId(), bidDtoList);
         log.info("입찰 저장 완료");
@@ -87,11 +92,29 @@ public class AuctionScheduler {
         schedulerService.saveSale(finalBuyerId, product.getId(), finalAmount);
         log.info("판매 저장 완료");
 
-        // 서버가 종료되었을 때, 대기 중인 레디스 다 삭제됨. repository하나 만들어서 서버 시작에 재등록하고 openAuction때 repository에 관리해야 됨
-        // 상품이 Integer.MaxValue를 넘어도 잘 작동할까?(url로 지정해서..)
-        // 레디스를 사용한 이유는 서버의 부하를 막기 위해서였다.
-        // 하지만 웹소켓만으로 대용량을 처리할 수 있을까?(카프카란 걸 같이 사용해야 할 거 같다..)
         openedAuctionRedis.delete(AUCTION, product.getId());
+    }
+
+    /**
+     * 환불 및 지불 처리를 담당하는 메서드입니다.
+     *
+     * @param product 상품
+     * @param withDrawMap 환불할 회원 ID 및 금액 맵
+     * @param successMemberId 최종 구매자 회원 ID
+     * @param finalAmount 최종 입찰 금액
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    private void processWithdrawalsAndPayout(Product product, Map<Long, Long> withDrawMap, Long successMemberId, Long finalAmount) {
+        if (successMemberId != null) {
+            memberService.addMoney(product.getMember().getId(), finalAmount);
+        }
+
+        for (Map.Entry<Long, Long> entry : withDrawMap.entrySet()) {
+            Long memberId = entry.getKey();
+            Long bidAmount = entry.getValue();
+            memberService.withDraw(memberId, bidAmount);
+        }
+
     }
 
 }

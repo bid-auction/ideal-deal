@@ -9,6 +9,10 @@ import lombok.*;
 @Entity
 @Getter
 @Builder
+@Table(
+        name = "sale",
+        indexes = @Index(name = "idx_sale_price", columnList = "sale_price")
+)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class Sale extends BaseEntity {
@@ -18,10 +22,14 @@ public class Sale extends BaseEntity {
     @Column(name = "sale_id")
     private Long id;
 
+    @Column(name = "sale_price")
     private Long salePrice;
 
     @Enumerated(EnumType.STRING)
     private SaleStatus saleStatus;
+
+    @Column(name = "buyer_member_id")
+    private Long buyerMemberId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
@@ -31,13 +39,22 @@ public class Sale extends BaseEntity {
     @JoinColumn(name = "product_id")
     private Product product;
 
-    public static Sale fromAuction(Long finalPrice, SaleStatus saleStatus, Member member, Product product) {
+    public static Sale fromAuction(
+            Long finalBuyerId,
+            Long finalPrice,
+            SaleStatus saleStatus,
+            Member member,
+            Product product) {
+
         return Sale.builder()
                 .salePrice(finalPrice)
                 .saleStatus(saleStatus)
+                .buyerMemberId(finalBuyerId)
                 .member(member)
                 .product(product)
                 .build();
     }
 
 }
+
+

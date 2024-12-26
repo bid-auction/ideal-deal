@@ -5,17 +5,13 @@ import com.auction.bid.domain.member.Member;
 import com.auction.bid.domain.photo.Photo;
 import com.auction.bid.domain.product.ProductBidPhase;
 import com.auction.bid.domain.product.Product;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.w3c.dom.stylesheets.LinkStyle;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ProductGetDto {
-    //
+  
     @Builder
     @Getter
     public static class Response{
@@ -45,4 +41,5 @@ public class ProductGetDto {
                     .build();
         }
     }
+
 }

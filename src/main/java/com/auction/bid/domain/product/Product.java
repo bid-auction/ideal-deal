@@ -2,6 +2,7 @@ package com.auction.bid.domain.product;
 
 import com.auction.bid.domain.category.Category;
 import com.auction.bid.domain.member.Member;
+import com.auction.bid.domain.photo.Photo;
 import com.auction.bid.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -10,6 +11,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -49,8 +52,18 @@ public class Product extends BaseEntity {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Photo> photos;
+
     public void changeAuctionPhase(ProductBidPhase productBidPhase) {
         this.productBidPhase = productBidPhase;
     }
 
+    public void addPhoto(Photo photo) {
+        if (this.photos == null) {
+            this.photos = new ArrayList<>();
+        }
+        photos.add(photo);
+        photo.assignProduct(this);
+    }
 }

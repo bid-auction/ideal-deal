@@ -1,8 +1,11 @@
 package com.auction.bid.domain.member;
 
-import com.auction.bid.domain.member.dto.ChargeDto;
-import com.auction.bid.domain.member.dto.SignUpDto;
+import com.auction.bid.domain.auction.AuctionStatus;
+import com.auction.bid.domain.member.dto.*;
+import com.auction.bid.domain.sale.SaleStatus;
+import org.springframework.data.domain.Page;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface MemberService {
@@ -26,4 +29,13 @@ public interface MemberService {
     void withDraw(Long memberId, Long withDrawMoney);
 
     void addMoney(Long memberId, Long amount);
+
+    Page<AuctionHistoryDto> getAuctionHistory(String token, int page, int size, AuctionStatus auctionStatus);
+
+    DetailAuctionHistoryDto getAuctionDetail(String token, Long auctionId);
+
+    List<SaleHistoryDto> getSaleHistory(String token, int page, int size, SaleStatus saleStatus);
+
+    DetailSaleHistoryDto getSaleDetail(Long saleId);
+
 }

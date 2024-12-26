@@ -2,7 +2,6 @@ package com.auction.bid.domain.bid;
 
 import com.auction.bid.domain.member.Member;
 import com.auction.bid.domain.product.Product;
-import com.auction.bid.domain.product.ProductBidPhase;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -94,3 +93,4 @@ public class BidDto {
     }
 
 }
+

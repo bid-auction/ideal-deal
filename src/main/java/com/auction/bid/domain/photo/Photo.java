@@ -7,10 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -27,10 +23,8 @@ public class Photo extends BaseEntity {
     @Column(nullable = false)
     private String imagePath;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="product_id", nullable = false)
-@OnDelete(action = OnDeleteAction.CASCADE)
-
     private Product product;
 
     public Photo(String dbImagePath, Product product) {
@@ -38,4 +32,7 @@ public class Photo extends BaseEntity {
         this.product = product;
     }
 
+    public void assignProduct(Product product) {
+        this.product = product;
+    }
 }

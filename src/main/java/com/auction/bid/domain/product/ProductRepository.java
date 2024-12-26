@@ -1,6 +1,5 @@
 package com.auction.bid.domain.product;
 
-import com.auction.bid.domain.product.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,25 +1,35 @@
 package com.auction.bid.domain.member;
 
-import com.auction.bid.domain.member.dto.ChargeDto;
-import com.auction.bid.domain.member.dto.SignUpDto;
+import com.auction.bid.domain.auction.Auction;
+import com.auction.bid.domain.auction.AuctionStatus;
+import com.auction.bid.domain.bid.Bid;
+import com.auction.bid.domain.member.dto.*;
+import com.auction.bid.domain.sale.Sale;
+import com.auction.bid.domain.sale.SaleStatus;
 import com.auction.bid.global.exception.ErrorCode;
 import com.auction.bid.global.exception.exceptions.AuthException;
 import com.auction.bid.global.exception.exceptions.MailException;
 import com.auction.bid.global.exception.exceptions.MemberException;
 import com.auction.bid.global.exception.exceptions.MoneyException;
+import com.auction.bid.global.querydsl.QueryDslRepository;
 import com.auction.bid.global.security.ConstSecurity;
 import com.auction.bid.global.security.RefreshTokenRepository;
 import com.auction.bid.global.security.jwt.JWTUtil;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -35,7 +45,13 @@ public class MemberServiceImpl implements MemberService{
     private final JWTUtil jwtUtil;
     private final RedisTemplate<String, Object> redisTemplate;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final QueryDslRepository queryDslRepository;
 
+    /**
+     * 회원가입 처리
+     * @param request 회원가입 요청 DTO
+     * @return 회원가입 응답 DTO
+     */
     @Override
     public SignUpDto.Response signUp(SignUpDto.Request request) {
         if (request.getEmailVerified() == null || !request.getEmailVerified()) {
@@ -51,6 +67,11 @@ public class MemberServiceImpl implements MemberService{
         return SignUpDto.Response.fromEntity(savedMember);
     }
 
+    /**
+     * 이메일 전송
+     * @param to 수신 이메일 주소
+     * @return 이메일 주소
+     */
     @Override
     public String sendEmail(String to) {
         MimeMessage message = mailSender.createMimeMessage();
@@ -74,6 +95,12 @@ public class MemberServiceImpl implements MemberService{
         return to;
     }
 
+    /**
+     * 이메일 인증 처리
+     * @param email 이메일 주소
+     * @param token 인증 토큰
+     * @return 인증 성공 여부
+     */
     @Override
     public boolean verifyEmail(String email, String token) {
         if (Boolean.FALSE.equals(redisTemplate.hasKey(email))) {
@@ -88,6 +115,11 @@ public class MemberServiceImpl implements MemberService{
         return true;
     }
 
+    /**
+     * 로그아웃 처리
+     * @param token 인증 토큰
+     * @return 멤버 UUID
+     */
     @Override
     public String logout(String token) {
         if (token == null || !token.startsWith(ConstSecurity.BEARER)) {
@@ -95,27 +127,44 @@ public class MemberServiceImpl implements MemberService{
         }
 
         String jwtToken = jwtUtil.getTokenFromHeader(token);
-        String memberId = jwtUtil.getMemberStrUUIDFromToken(jwtToken);
+        String memberUUID = jwtUtil.getMemberStrUUIDFromToken(jwtToken);
         redisTemplate.opsForValue().set(jwtToken, ConstSecurity.BLACK_LIST, 1, TimeUnit.DAYS);
-        refreshTokenRepository.deleteByMemberId(UUID.fromString(memberId));
+        refreshTokenRepository.deleteByMemberId(UUID.fromString(memberUUID));
 
-        return memberId;
+        return memberUUID;
     }
 
+    /**
+     * 멤버 조회
+     * @param memberUUID 멤버 UUID
+     * @return 멤버 엔티티
+     */
     @Override
     public Member findByMemberUUID(UUID memberUUID) {
         return memberRepository.findByMemberUUID(memberUUID)
                 .orElseThrow(() -> new MemberException(ErrorCode.NOT_EXIST_MEMBER));
     }
 
+    /**
+     * 잔액 추가
+     * @param memberId 멤버 ID
+     * @param amount 추가 금액
+     */
     @Override
     public void addMoney(Long memberId, Long amount) {
-        Member findMember = memberRepository.findById(memberId)
+        Member findMember = memberRepository.lockMemberForUpdate(memberId)
                 .orElseThrow(() -> new MemberException(ErrorCode.NOT_EXIST_MEMBER));
 
         findMember.addBalance(amount);
     }
 
+    /**
+     * 충전 요청 처리
+     * @param token 사용자 인증 토큰
+     * @param dtoRequest 충전 요청 DTO
+     * @return 충전 후 잔액 응답 DTO
+     * @throws AuthException 인증 토큰이 유효하지 않을 경우 발생
+     */
     @Override
     public ChargeDto.Response chargeMoney(String token, ChargeDto.Request dtoRequest) {
         if (token == null || !token.startsWith(ConstSecurity.BEARER)) {
@@ -126,12 +175,24 @@ public class MemberServiceImpl implements MemberService{
         return new ChargeDto.Response(currMoney);
     }
 
+    /**
+     * 사용자 잔액 조회
+     * @param token 사용자 인증 토큰
+     * @return 사용자의 현재 잔액
+     */
     @Override
     public Long getMoney(String token) {
         Member findMember = getMemberFromToken(token);
         return findMember.getBalance();
     }
 
+    /**
+     * 경매 입찰 처리
+     * @param member 입찰을 수행하는 멤버 객체
+     * @param bidMoney 입찰 금액
+     * @param lastMoney 이전 최고 입찰 금액
+     * @throws MoneyException 사용자의 잔액이 부족할 경우 발생
+     */
     @Override
     public void bidToAuction(Member member, Long bidMoney, Long lastMoney) {
         Long balance = member.getBalance();
@@ -144,13 +205,104 @@ public class MemberServiceImpl implements MemberService{
         memberRepository.save(member);
     }
 
+    /**
+     * 잔액 출금 처리
+     * @param memberId 멤버 ID
+     * @param withDrawMoney 출금 금액
+     * @throws MemberException 멤버가 존재하지 않을 경우 발생
+     */
     @Override
     public void withDraw(Long memberId, Long withDrawMoney) {
-        Member findMember = memberRepository.findById(memberId)
+        Member findMember = memberRepository.lockMemberForUpdate(memberId)
                 .orElseThrow(() -> new MemberException(ErrorCode.NOT_EXIST_MEMBER));
+
         findMember.addBalance(withDrawMoney);
     }
 
+    /**
+     * 경매 기록 조회
+     * @param token 사용자 인증 토큰
+     * @param page 페이지 번호
+     * @param size 페이지 크기
+     * @param auctionStatus 경매 상태
+     * @return 경매 기록의 페이징된 목록
+     */
+    @Override
+    public Page<AuctionHistoryDto> getAuctionHistory(String token, int page, int size, AuctionStatus auctionStatus) {
+        Pageable pageable = PageRequest.of(page, size);
+        UUID memberUUID = jwtUtil.getMemberUUIDFromToken(token);
+        Page<Auction> auctionPage = queryDslRepository.getAuctionList(memberUUID, pageable, auctionStatus);
+        List<AuctionHistoryDto> auctionList = auctionPage.stream()
+                .map(AuctionHistoryDto::fromAuction)
+                .toList();
+
+        return PageableExecutionUtils.getPage(auctionList, pageable, auctionPage::getTotalElements);
+    }
+
+    /**
+     * 특정 경매 상세 정보 조회
+     * @param token 사용자 인증 토큰
+     * @param auctionId 경매 ID
+     * @return 경매 상세 정보 DTO
+     */
+    @Override
+    public DetailAuctionHistoryDto getAuctionDetail(String token, Long auctionId) {
+        UUID memberUUID = jwtUtil.getMemberUUIDFromToken(token);
+        Member findMember = memberRepository.findByMemberUUID(memberUUID)
+                .orElseThrow(() -> new MemberException(ErrorCode.NOT_EXIST_MEMBER));
+        Auction findAuction = queryDslRepository.getAuctionEagerly(auctionId);
+        List<BidHistoryDto> bidDtoList = getBidDtoList(findAuction.getProduct().getId());
+        return DetailAuctionHistoryDto.fromAuction(findAuction, findMember.getId(), bidDtoList);
+    }
+
+    /**
+     * 판매 기록 조회
+     * @param token 사용자 인증 토큰
+     * @param page 페이지 번호
+     * @param size 페이지 크기
+     * @param saleStatus 판매 상태
+     * @return 판매 기록 DTO 목록
+     */
+    @Override
+    public List<SaleHistoryDto> getSaleHistory(String token, int page, int size, SaleStatus saleStatus) {
+        Pageable pageable = PageRequest.of(page, size);
+        UUID memberUUID = jwtUtil.getMemberUUIDFromToken(token);
+        List<Sale> saleList = queryDslRepository.getSaleList(memberUUID, pageable, saleStatus);
+        return saleList.stream()
+                .map(SaleHistoryDto::fromSale)
+                .toList();
+    }
+
+    /**
+     * 특정 판매 상세 정보 조회
+     * @param saleId 판매 ID
+     * @return 판매 상세 정보 DTO
+     */
+    @Override
+    public DetailSaleHistoryDto getSaleDetail(Long saleId) {
+        Sale findSale = queryDslRepository.getSaleEagerly(saleId);
+        List<BidHistoryDto> bidDtoList = getBidDtoList(findSale.getProduct().getId());
+        return DetailSaleHistoryDto.fromSale(findSale, bidDtoList);
+    }
+
+    /**
+     * 상품 ID로 입찰 기록 조회
+     * @param productId 상품 ID
+     * @return 입찰 기록 DTO 목록
+     */
+    private List<BidHistoryDto> getBidDtoList(Long productId) {
+        List<Bid> bidList = queryDslRepository.findAllByProductId(productId);
+        return bidList.stream()
+                .map(BidHistoryDto::fromBidEntity)
+                .toList();
+    }
+
+    /**
+     * 토큰에서 멤버 정보 추출
+     * @param token 사용자 인증 토큰
+     * @return 멤버 엔티티
+     * @throws MemberException 멤버가 존재하지 않을 경우 발생
+     */
     private Member getMemberFromToken(String token) {
         UUID memberUUID = jwtUtil.getMemberUUIDFromToken(token);
         return memberRepository.findByMemberUUID(memberUUID)
