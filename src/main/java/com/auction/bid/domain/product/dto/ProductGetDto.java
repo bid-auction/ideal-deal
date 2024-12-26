@@ -6,12 +6,12 @@ import com.auction.bid.domain.photo.Photo;
 import com.auction.bid.domain.product.ProductBidPhase;
 import com.auction.bid.domain.product.Product;
 import lombok.*;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ProductGetDto {
+  
     @Builder
     @Getter
     public static class Response{
@@ -41,4 +41,5 @@ public class ProductGetDto {
                     .build();
         }
     }
+
 }

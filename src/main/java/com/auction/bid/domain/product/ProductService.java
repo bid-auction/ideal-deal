@@ -1,5 +1,6 @@
 package com.auction.bid.domain.product;
 
+
 import com.auction.bid.domain.product.dto.*;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,5 +38,6 @@ public interface ProductService {
     Page<PhaseCriteriaResponse> getBidOngoing(int page, int size);
 
     Page<PhaseCriteriaResponse> getBidEnded(int page, int size);
+
 
 }

@@ -77,6 +77,7 @@ public class ProductController {
      * @return 조회된 상품 정보
      */
     @GetMapping("/{productId}")
+
     public ResponseEntity<?> getProduct(@PathVariable(name = "productId") Long productId){
         return ResponseEntity.ok(productService.getProduct(productId));
     }
