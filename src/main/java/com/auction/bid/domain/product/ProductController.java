@@ -27,6 +27,7 @@ public class ProductController {
             return ResponseEntity.ok(productService.register(images, request, token));
     }
 
+
 //    @PutMapping("/{productId}")
 //    public ResponseEntity<?> updateProduct(@PathVariable(name = "productId") Long id,
 //                                           @Valid @RequestParam("images") List<MultipartFile> images,
@@ -44,6 +45,7 @@ public class ProductController {
     @GetMapping("/{productId}")
     public ResponseEntity<?> getProductDetail(@PathVariable(name = "productId") Long productId){
         return ResponseEntity.ok(productService.getProductDetail(productId));
+
     }
 
 }

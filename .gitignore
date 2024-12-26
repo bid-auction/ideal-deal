@@ -40,4 +40,4 @@ out/
 *.yml
 
 ### image file ###
-.webp
+*.webp

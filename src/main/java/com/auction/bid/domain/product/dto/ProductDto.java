@@ -60,7 +60,6 @@ public class ProductDto {
         private Long id;
         private String title;
         private String description;
-        private List<String> imagePath;
         private Long startBid;
         private ProductBidPhase productBidPhase;
         private LocalDateTime auctionStart;

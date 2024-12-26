@@ -29,7 +29,8 @@ public class Photo extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name="product_id", nullable = false)
-//    @OnDelete(action = OnDeleteAction.CASCADE)
+@OnDelete(action = OnDeleteAction.CASCADE)
+
     private Product product;
 
     public Photo(String dbImagePath, Product product) {
