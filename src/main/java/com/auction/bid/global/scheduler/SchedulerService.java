@@ -101,18 +101,19 @@ public class SchedulerService {
 }
 
     public void saveSale(Long buyerId, Long productId, Long finalAmount) {
-        if (buyerId == null) {
-            saleRepository.save(Sale.fromAuction(null, SaleStatus.SALE_FAILURE, null, null));
-            return;
-        }
-
-        Member findBuyer = memberRepository.findById(buyerId)
-                .orElseThrow(() -> new MemberException(ErrorCode.NOT_EXIST_MEMBER));
-
         Product findProduct = productRepository.findById(productId)
                 .orElseThrow(() -> new ProductException(ErrorCode.NOT_EXISTS_PRODUCT));
 
-        saleRepository.save(Sale.fromAuction(finalAmount, SaleStatus.SALE_SUCCESS, findBuyer, findProduct));
+        if (buyerId == null) {
+            saleRepository.save(
+                    Sale.fromAuction(null, null, SaleStatus.SALE_FAILURE, findProduct.getMember(), findProduct)
+            );
+            return;
+        }
+
+        saleRepository.save(
+                Sale.fromAuction(buyerId, finalAmount, SaleStatus.SALE_SUCCESS, findProduct.getMember(), findProduct)
+        );
     }
 
 }

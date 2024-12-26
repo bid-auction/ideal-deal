@@ -23,7 +23,6 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Stream;
 
 import static com.auction.bid.global.scheduler.ConstAuction.AUCTION;
 import static com.auction.bid.global.websocket.ConstWebsocket.MEMBER;
@@ -165,7 +164,9 @@ public class WebSocketBidHandler extends TextWebSocketHandler {
 
     public void phaseChange(Long productId, ProductBidPhase phase) {
         Set<WebSocketSession> webSocketSessions = getWebSocketSessions(productId);
-        webSocketSessions.parallelStream().forEach(session -> sendMessage(session, phase));
+        webSocketSessions.parallelStream()
+                .filter(WebSocketSession::isOpen)
+                .forEach(session -> sendMessage(session, phase));
         if (phase == ProductBidPhase.ENDED){
             closeAllSessions(webSocketSessions);
         }
@@ -208,10 +209,6 @@ public class WebSocketBidHandler extends TextWebSocketHandler {
         }
 
         Set<WebSocketSession> webSocketSessions = roomSessionMap.get(productId);
-        if (webSocketSessions.size() >= 5) {
-            removeClosedSession(webSocketSessions);
-        }
-
         return webSocketSessions;
     }
 
