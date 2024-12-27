@@ -122,6 +122,7 @@ public class QueryDslRepositoryImpl implements QueryDslRepository{
         JPAQuery<Long> countQuery = queryFactory
                 .select(product.count())
                 .from(product)
+                .leftJoin(product.photos)
                 .where(product.productBidPhase.eq(phase));
 
         return PageableExecutionUtils.getPage(products, pageable, countQuery::fetchOne);
@@ -157,6 +158,9 @@ public class QueryDslRepositoryImpl implements QueryDslRepository{
         JPAQuery<Long> countQuery = queryFactory
                 .select(auction.count())
                 .from(auction)
+                .leftJoin(auction.member, member)
+                .leftJoin(auction.product, product)
+                .leftJoin(product.photos)
                 .where(
                         member.memberUUID.eq(memberUUID),
                         condition
@@ -288,6 +292,8 @@ public class QueryDslRepositoryImpl implements QueryDslRepository{
         JPAQuery<Long> countQuery = queryFactory
                 .select(sale.count())
                 .from(sale)
+                .leftJoin(sale.product, product)
+                .leftJoin(product.photos, photo)
                 .where(sale.saleStatus.eq(SaleStatus.SALE_SUCCESS));
 
         return PageableExecutionUtils.getPage(saleList, pageable, countQuery::fetchOne);
