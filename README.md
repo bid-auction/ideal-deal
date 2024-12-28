@@ -326,18 +326,33 @@ Optional<Member> lockMemberForUpdate(Long memberId);
 1번 쓰레드가 memberA를 조회한 후, memberB를 조회를 시도할 때,<br>
 2번 쓰레드는 memberB를 조회한 후, memberC를 조회를 시도할 때,<br>
 3번 쓰레드는 membeC를 조회한 후, memberA를 조회하기 위해 시도할 때, 각 쓰레드가 서로 다음 자원을 기다리며 데드락에 빠지고 있다고 생각했습니다.<br>
-이 문제를 해결하기 위해 트랜잭션은 커밋될 때 락이 풀린다는 사실을 파악했고, 현재 트랜잭션이 경매 종료라는 하나의 큰 트랜잭션 안에서 처리되고 있었기 때문에 이를 더 세분화해야 한다고 느꼈습니다.
+이 문제를 해결하기 위해 트랜잭션은 커밋될 때 락이 풀린다는 사실을 파악했고,<br>
+현재 트랜잭션이 경매 종료라는 하나의 큰 트랜잭션 안에서 처리되고 있었기 때문에 락을 풀기위해 트랜잭션을 더 세분화해야 한다고 판단했습니다.
 
-따라서, 최종적으로 철회하는 메서드를 새로운 트랜잭션으로 분리하여 처리하였습니다.
+따라서, 최종적으로 금액관련 메서드를 새로운 트랜잭션으로 분리하여 처리하였습니다.
 
 ```
+@Override
 @Transactional(propagation = Propagation.REQUIRES_NEW)
-private void processWithdrawalsAndPayout(Product product, Map<Long, Long> withDrawMap, Long successMemberId, Long finalAmount) {
-    ...
+public void addMoney(Long memberId, Long amount) {
+Member findMember = memberRepository.lockMemberForUpdate(memberId)
+	.orElseThrow(() -> new MemberException(ErrorCode.NOT_EXIST_MEMBER));
+...
 }
 ```
 
-이렇게 하여 철회하는 메서드에는 새로운 트랜잭션을 생성함으로써 락을 더 빨리 해제할 수 있게 되어 문제를 해결할 수 있었습니다.
+```
+@Override
+@Transactional(propagation = Propagation.REQUIRES_NEW)
+public void withDraw(Long memberId, Long withDrawMoney) {
+Member findMember = memberRepository.lockMemberForUpdate(memberId)
+	.orElseThrow(() -> new MemberException(ErrorCode.NOT_EXIST_MEMBER));
+...
+}
+
+```
+
+금액 관련 메서드에는 새로운 트랜잭션을 생성함으로써 락을 더 빨리 해제할 수 있게 되어 문제를 해결할 수 있었습니다.
 
 <br>
 <h2>순환 참조</h2>
