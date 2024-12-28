@@ -339,9 +339,7 @@ private void processWithdrawalsAndPayout(Product product, Map<Long, Long> withDr
 
 이렇게 하여 철회하는 메서드에는 새로운 트랜잭션을 생성함으로써 락을 더 빨리 해제할 수 있게 되어 문제를 해결할 수 있었습니다.
 
-하지만 지금 돌이켜보면, 트랜잭션의 커밋 시점을 더 세밀하게 조정하여 성능을 개선할 수 있었을 거 같습니다.
-
-<br><br>
+<br>
 <h2>순환 참조</h2>
 
 ![image (1)](https://github.com/user-attachments/assets/839b4c8b-1d32-4d0e-a105-b7948849f17c)
