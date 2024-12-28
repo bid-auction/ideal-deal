@@ -215,13 +215,13 @@
 </div>
 
 - 경매가 시작되면 해당 상품의 상태가 **TaskScheduler**에 의해 경매 상태가 **BEFORE**에서 **ONGOING**으로 변경됩니다.
-- 경매 과정에서 입찰 요청이 집중될 경우, **DB 부하**를 줄이기 위해 입찰 정보를 관리하는 **Redis** 인스턴스가 생성됩니다.
+- 경매가 시작될 때, **DB 부하**를 줄이기 위해 입찰 정보를 관리하는 **Redis** 인스턴스가 생성됩니다.
   
 <br>
 
 5. **경매 중** :
 - 경매 시작 시, 경매 전 대기 중이던 유저들에게 **경매가 시작되었다**는 문구를 전송합니다.
-- 유저가 경매에 입장할 경우, 해당 경매에 참여 중인 유저 수를 나타내는 **ViewCount**가 +1 증가하며, 나갈 경우 -1 감소합니다.
+- 유저가 경매에 입장할 경우, 해당 경매에 참여 중인 유저 수를 나타내는 **ViewCount**가 +1 증가하며, 나갈 경우 -1 감소하고 경매에 참여하는 유저들에게 조회중인 유저 수를 전송합니다.
 - 경매 중인 상품의 실시간 입찰 상황은 **WebSocket**을 통해 클라이언트와 서버 간에 주고받습니다.
 - 구매자가 입찰을 하게 되면 서버는 이를 검증 후 **WebSocket**으로 모든 참가자에게 **최신 입찰 정보를 전송**합니다.
 - 입찰에 대한 모든 정보는 **Redis**에 저장되어 효율적으로 관리됩니다.
@@ -231,7 +231,8 @@
 
 6. **경매 종료** :
 - 경매가 종료되면 해당 상품의 상태가 **TaskScheduler**에 의해 경매 상태가 **ONGOING**에서 **ENDED**로 변경됩니다.
-- 경매 종료일에 도달한 상품은 **TaskScheduler**에 의해 **자동적이고 비동기적으로 종료**됩니다.
+- 경매 종료일에 도달한 상품은 **TaskScheduler**에 의해 동적으로 **종료**됩니다.
+- **경매 종료** 시, 종료일이 도래한 경매들이 **비동기적**으로 동시에 마무리됩니다.
 - **경매 종료 시**, 클라이언트에 경매가 종료되었다는 문구가 표시되며, 연결되어 있던 **WebSocket**이 해제됩니다.
 - 종료된 경매의 **경매 정보**, **입찰 정보**, **판매 정보**는 **Redis**에서 조회한 후 데이터베이스(DB)에 저장됩니다. 이후, **Redis**에 저장된 해당 데이터는 **삭제**됩니다.
 - **판매자**는 낙찰된 입찰 금액을 지급받고, **낙찰자**는 경매 금액을 지불하며 거래가 완료됩니다.
@@ -265,19 +266,20 @@
 웹소켓의 세션을 기준으로 해당 유저의 최신 입찰 금액을 불러오는 방식에서 문제가 발생했습니다.<br>
 아래와 같은 방식으로 입찰을 처리했지만, 같은 유저가 나갔다 들어올 경우 새로운 세션으로 인식되면서 이전 입찰 기록을 가져오지 못하는 오류가 있었습니다.
 
-``` try {
-            Long lastMoney = (Long) attributes.get("lastMoney");
-            if (lastMoney == null) {
-                lastMoney = 0L;
-            }
+```
+try {
+    Long lastMoney = (Long) attributes.get("lastMoney");
+    if (lastMoney == null) {
+	lastMoney = 0L;
+    }
 
-            memberService.bidToAuction(member, dtoRequest.getBidAmount(), lastMoney);
-            attributes.put("lastMoney", dtoRequest.getBidAmount());
-        } catch (MoneyException | NullPointerException e) {
-            log.info("MoneyEx={}", e.getMessage());
-            sendMessage(session, "잔액이 부족합니다.");
-            return;
-        }
+    memberService.bidToAuction(member, dtoRequest.getBidAmount(), lastMoney);
+    attributes.put("lastMoney", dtoRequest.getBidAmount());
+} catch (MoneyException | NullPointerException e) {
+    log.info("MoneyEx={}", e.getMessage());
+    sendMessage(session, "잔액이 부족합니다.");
+    return;
+}
 ```
 그로 인해 입찰금액 추적에 실패하게 되었고, 이를 통해 철회금액 로직에서도 추가적인 오류가 발생하는 문제를 일으켰습니다.
 
@@ -299,10 +301,8 @@
 문제의 원인은 동시에 종료된 3개의 쓰레드가 비동기적으로 실행되면서, 각 유저의 잔액을 조회할 때 반영되지 않은 금액이 조회된다는 점이었습니다.
 
 이를 해결하기 위한 두 가지 방법이 있었습니다.<br>
-	1.	동기적으로 하나씩 실행한다.<br>
-	2.	비동기적으로 실행하되, 잔액을 반영하기 전까지는 조회를 하지 못하게 한다.
-
-
+1. 동기적으로 하나씩 실행한다.<br>
+2. 비동기적으로 실행하되, 잔액을 반영하기 전까지는 조회를 하지 못하게 한다.
 
 처음에는 첫 번째 방법을 시도했으나, 동기적으로 실행할 경우 여러 경매가 동시에 종료될 때 시간이 많이 소요된다는 문제를 발견했습니다. 그래서 두 번째 방법을 적용하여 문제를 해결했습니다.
 
@@ -359,7 +359,7 @@ private void processWithdrawalsAndPayout(Product product, Map<Long, Long> withDr
 
 하지만 서비스 계층의 책임 분리가 제대로 이루어지지 않으면 여전히 순환참조가 발생할 가능성이 있기 때문에,<br>
 서비스 계층을 더 세분화하고 책임을 명확히 분리하는 작업이 필요하다는 점을 깨달았습니다.<br>
-이와 관련된 설계 패턴이 개념에 대해 더 공부해야겠다고 생각했습니다.
+이와 관련된 설계 패턴의 개념에 대해 더 공부해야겠다고 생각했습니다.
 
 <br><br>
 # 📋 ERD
