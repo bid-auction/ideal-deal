@@ -27,6 +27,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -151,6 +152,7 @@ public class MemberServiceImpl implements MemberService{
      * @param amount 추가 금액
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void addMoney(Long memberId, Long amount) {
         Member findMember = memberRepository.lockMemberForUpdate(memberId)
                 .orElseThrow(() -> new MemberException(ErrorCode.NOT_EXIST_MEMBER));
@@ -212,6 +214,7 @@ public class MemberServiceImpl implements MemberService{
      * @throws MemberException 멤버가 존재하지 않을 경우 발생
      */
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void withDraw(Long memberId, Long withDrawMoney) {
         Member findMember = memberRepository.lockMemberForUpdate(memberId)
                 .orElseThrow(() -> new MemberException(ErrorCode.NOT_EXIST_MEMBER));

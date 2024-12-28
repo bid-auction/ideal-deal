@@ -103,7 +103,6 @@ public class AuctionScheduler {
      * @param successMemberId 최종 구매자 회원 ID
      * @param finalAmount 최종 입찰 금액
      */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     private void processWithdrawalsAndPayout(Product product, Map<Long, Long> withDrawMap, Long successMemberId, Long finalAmount) {
         if (successMemberId != null) {
             memberService.addMoney(product.getMember().getId(), finalAmount);
