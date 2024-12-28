@@ -235,6 +235,62 @@
 
 <br><br>
 
+# ❤️‍🩹 문제점 및 해결방안
+이 프로젝트에서 몇 가지 문제점이 있었으나, 주어진 기간 내에 프로젝트를 완성하지 못했습니다.<br>
+하지만 문제를 숨기지 않고, 그에 대한 해결책을 명확히 제시하며 풀어나가겠습니다.
+
+--- 
+
+<h3>1. 서버가 종료되었을 경우</h3>
+
+🔴 **문제점**<br>
+서버가 종료되었을 경우, TaskScheduler에 의해 예약되었었던 작업들이 모두 중단됩니다.<br>
+즉, 서버 종료 시 현재 대기 중인 작업이나 실행 중인 작업들이 모두 취소되며, 재시작 시 예약된 작업들이 복구되지 않습니다.<br>
+이는 서버가 종료되면 예약된 작업이 다시 실행되지 않는 문제를 야기할 수 있습니다.<br>
+
+🟢 **해결책**<br>
+상품을 등록할 때, ProductRepository에 경매 시작일과 경매 종료일이 저장됩니다.<br>
+서버의 실행 전 이벤트리스너의 어노테이션을 활용하여 Product의 경매 시작일과 경매 종료일을 조회한 후, 다시 백그라운드에 쓰레드들을 대기시킵니다.<br>
+
+--- 
+
+<h3>2. 입찰 방식의 문제점</h3>
+
+🔴 **문제점**<br>
+웹소켓의 세션을 기준으로 해당 유저의 최신 입찰 금액을 불러오는 방식에서 문제가 발생했습니다.
+아래와 같은 방식으로 입찰을 처리했지만, 같은 유저가 나갔다 들어올 경우 새로운 세션으로 인식되면서 이전 입찰 기록을 가져오지 못하는 오류가 있었습니다.
+
+``` try {
+            Long lastMoney = (Long) attributes.get("lastMoney");
+            if (lastMoney == null) {
+                lastMoney = 0L;
+            }
+
+            memberService.bidToAuction(member, dtoRequest.getBidAmount(), lastMoney);
+            attributes.put("lastMoney", dtoRequest.getBidAmount());
+        } catch (MoneyException | NullPointerException e) {
+            log.info("MoneyEx={}", e.getMessage());
+            sendMessage(session, "잔액이 부족합니다.");
+            return;
+        }
+```
+그로 인해 입찰금액 추적에 실패하게 되었고, 이를 통해 철회금액 로직에서도 추가적인 오류가 발생하는 문제를 일으켰습니다.
+
+🟢 **해결책** <br>
+이 문제를 해결하기 위해 Redis의 Hash를 활용하여 유저의 입찰 기록을 세션과 관계없이 지속적으로 관리하도록 변경합니다.<br>
+이를 통해 유저가 나갔다가 다시 들어와도 Redis에서 이전 입찰 금액을 쉽게 불러올 수 있게 됩니다.<br>
+이렇게 하면 세션 정보가 새로 생성되어도 유저의 입찰 내역을 정확히 추적할 수 있으며, 철회금액 로직에서도 오류를 방지할 수 있습니다.
+
+--- 
+
+<br><br>
+# 🎯 트러블 슈팅
+
+[순환 참조]
+
+[비동기와 트랜잭션]
+
+<br><br>
 # 📋 ERD
 
 ![image](https://github.com/user-attachments/assets/67c8cd66-63ef-4800-b092-59df3c86c88e)
