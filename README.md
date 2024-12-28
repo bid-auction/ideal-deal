@@ -38,8 +38,8 @@
 - **Postman**
 - **Redis**
 - **QueryDsl**
-- **Scheduler**
-- **Web Socket**
+- **TaskScheduler**
+- **Websocket**
 <br>
 
 # 📱 와이어 프레임
