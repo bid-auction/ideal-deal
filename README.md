@@ -1,4 +1,4 @@
-<div align="center"> 
+![image](https://github.com/user-attachments/assets/6026e4eb-6de5-4c75-b2a0-2b3985d1af65)<div align="center"> 
 <h1>찰떡딜</h1>
 </div>
 <p align="center">
@@ -418,9 +418,7 @@ Member findMember = memberRepository.lockMemberForUpdate(memberId)
 <br>
 <h2>메서드 오버로딩과 NULL</h2>
 
-![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/955815e4-fb14-45d5-bbe9-39d8d71904aa/bac98585-8a89-422d-8af1-6a2a5ac356e3/image.png)
-
-![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/955815e4-fb14-45d5-bbe9-39d8d71904aa/bac98585-8a89-422d-8af1-6a2a5ac356e3/image.png)
+![image](https://github.com/user-attachments/assets/da945b61-d898-4274-822f-e7f87a6076e6)
 
 기존 코드는 fromEntity()를 오버로딩하여  응답 객체를 생성하여 두가지로 선택해서 반환하였다.
 
@@ -430,21 +428,22 @@ Member findMember = memberRepository.lockMemberForUpdate(memberId)
 
 착각과 달리 특정 필드를 제외해도 필드에 null값이 저장되어 객체가 생성된다.
 
-![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/955815e4-fb14-45d5-bbe9-39d8d71904aa/4690793b-e4d0-4416-b448-2f81a4eebed3/image.png)
+![image](https://github.com/user-attachments/assets/db0608e4-6b00-433d-9e58-2ef05e93cae9)
 
 따라서 위와 같이 조회하고 반환 할때 필요한 목적에 맞는 Dto 클래스를 추가로 생성하였다.
 
 <br>
 <h2>외래키 제약조건, 데이터 무결성, 고아현상</h2>
 
-![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/955815e4-fb14-45d5-bbe9-39d8d71904aa/ea8e326a-aa71-4cf5-a6c7-81113ebf114b/image.png)
+![image](https://github.com/user-attachments/assets/4c5541de-0383-4c4c-aa87-d5e15784f8d2)
 
-Photo와 product는 ManyToOne으로 자식과 부모 관계이다. 그리고 부모의 product_id를 외래키로 갖는다. 따라서 1. 부모인 Product를 삭제시 외래키 제약조건에 걸린다. 자식인 Photo에서 참조할 외래키가 없는것이다.
+Photo와 product는 ManyToOne으로 자식과 부모 관계이다. 그리고 부모의 product_id를 외래키로 갖는다.
+따라서
+1. 부모인 Product를 삭제시 외래키 제약조건에 걸린다. 자식인 Photo에서 참조할 외래키가 없는것이다.
+2. 외래키 제약 조건이 없더라도 데이터 무결성을 위배한다.  왜냐하면 부모가 삭제되더라도 데이터베이스에서 자식은 그대로 남아 있다. 이 경우 삭제 메서드 자체가 성공적으로 실행되지만, 데이터베이스에는 무효한 데이터(고아 데이터)가 남는다. 이는 데이터 무결성을 위협할 수 있다.
+3. 애플리케이션에서 자식인 Photo를 명시적으로 삭제하지 않으면 고아 데이터가 남아 문제가 될수 있다.
 
-1. 외래키 제약 조건이 없더라도 데이터 무결성을 위배한다.  왜냐하면 부모가 삭제되더라도 데이터베이스에서 자식은 그대로 남아 있다. 이 경우 삭제 메서드 자체가 성공적으로 실행되지만, 데이터베이스에는 무효한 데이터(고아 데이터)가 남는다. 이는 데이터 무결성을 위협할 수 있다.
-2. 애플리케이션에서 자식인 Photo를 명시적으로 삭제하지 않으면 고아 데이터가 남아 문제가 될수 있다.
-
-![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/955815e4-fb14-45d5-bbe9-39d8d71904aa/7d2852f8-2a2a-4251-b75a-3f905f15d20a/image.png)
+![image](https://github.com/user-attachments/assets/a3d88bb2-5201-433c-a1cf-11504a905098)
 
 따라서 위와 같은 방법으로 해결한다.
 
@@ -454,9 +453,7 @@ OnDelete(action = OnDeleteAction.CASECADE)
 
 *. 최종 수정 코드는 아래와 같다.
 
-![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/955815e4-fb14-45d5-bbe9-39d8d71904aa/57461c4f-0325-4eac-892a-ebf16c897a59/image.png)
-
-![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/955815e4-fb14-45d5-bbe9-39d8d71904aa/b92d36a4-06be-44a9-8a31-fa41585bd7fb/image.png)
+![image](https://github.com/user-attachments/assets/467664c2-142c-410f-9a8f-5f96b4905dff)
 
 팀원의 Thumbnail~코드 관련하여 코드 수정이 필요하여 수정하였다.
 
