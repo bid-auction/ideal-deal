@@ -415,6 +415,63 @@ Member findMember = memberRepository.lockMemberForUpdate(memberId)
 서비스 계층을 더 세분화하고 책임을 명확히 분리하는 작업이 필요하다는 점을 깨달았습니다.<br>
 이와 관련된 설계 패턴의 개념에 대해 더 공부해야겠다고 생각했습니다.
 
+<br>
+<h2>메서드 오버로딩과 NULL</h2>
+
+![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/955815e4-fb14-45d5-bbe9-39d8d71904aa/bac98585-8a89-422d-8af1-6a2a5ac356e3/image.png)
+
+![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/955815e4-fb14-45d5-bbe9-39d8d71904aa/bac98585-8a89-422d-8af1-6a2a5ac356e3/image.png)
+
+기존 코드는 fromEntity()를 오버로딩하여  응답 객체를 생성하여 두가지로 선택해서 반환하였다.
+
+하지만 fromEntity(Product product)를 실행하여 생성한 응답 객체에서 imagePath에 null값이 저장되어서 반환되었다.
+
+@Builder로 객체를 생성할때 특정 필드를 제외하면 반환할때 제외된다고 착각한것이다.
+
+착각과 달리 특정 필드를 제외해도 필드에 null값이 저장되어 객체가 생성된다.
+
+![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/955815e4-fb14-45d5-bbe9-39d8d71904aa/4690793b-e4d0-4416-b448-2f81a4eebed3/image.png)
+
+따라서 위와 같이 조회하고 반환 할때 필요한 목적에 맞는 Dto 클래스를 추가로 생성하였다.
+
+<br>
+<h2>외래키 제약조건, 데이터 무결성, 고아현상</h2>
+
+![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/955815e4-fb14-45d5-bbe9-39d8d71904aa/ea8e326a-aa71-4cf5-a6c7-81113ebf114b/image.png)
+
+Photo와 product는 ManyToOne으로 자식과 부모 관계이다. 그리고 부모의 product_id를 외래키로 갖는다. 따라서 1. 부모인 Product를 삭제시 외래키 제약조건에 걸린다. 자식인 Photo에서 참조할 외래키가 없는것이다.
+
+1. 외래키 제약 조건이 없더라도 데이터 무결성을 위배한다.  왜냐하면 부모가 삭제되더라도 데이터베이스에서 자식은 그대로 남아 있다. 이 경우 삭제 메서드 자체가 성공적으로 실행되지만, 데이터베이스에는 무효한 데이터(고아 데이터)가 남는다. 이는 데이터 무결성을 위협할 수 있다.
+2. 애플리케이션에서 자식인 Photo를 명시적으로 삭제하지 않으면 고아 데이터가 남아 문제가 될수 있다.
+
+![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/955815e4-fb14-45d5-bbe9-39d8d71904aa/7d2852f8-2a2a-4251-b75a-3f905f15d20a/image.png)
+
+따라서 위와 같은 방법으로 해결한다.
+
+OnDelete(action = OnDeleteAction.CASECADE)
+
+부모 데이터가 삭제 되면 자식 데이터가 자동으로 삭제되게 하는 설정이다.
+
+*. 최종 수정 코드는 아래와 같다.
+
+![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/955815e4-fb14-45d5-bbe9-39d8d71904aa/57461c4f-0325-4eac-892a-ebf16c897a59/image.png)
+
+![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/955815e4-fb14-45d5-bbe9-39d8d71904aa/b92d36a4-06be-44a9-8a31-fa41585bd7fb/image.png)
+
+팀원의 Thumbnail~코드 관련하여 코드 수정이 필요하여 수정하였다.
+
+1. 양방향 연관관계 설정.
+2. repository.save() 쿼리 두번이 아닌 한번만 날라가게 작성.
+3. 각 엔티티에 서로 값을 설정하게 한 이유는 한쪽에서만 값을 설정해도 되지만 양쪽에서 값을 설정해서 코드를 볼 때 헷갈리지 않게 하기 위함이다.
+4. @OneToMany와casecade.ALL와 product의 addPhoto로 연관관계를 맺고 있기에 Product가 DB에 저장될때 Photo도 같이 저장된다
+5. orphanRemoval = true이기 때문에 Product에서 제거된 Photo는 DB에서도 삭제된다.
+
+추가로 팀원이 수정하기 전 코드에서 처음에 OnDelete(action = OnDeleteAction.CASECADE) 없이는 삭제 메소드 실행시 제목과 같은 문제들이 발생하였다.
+
+하지만 며칠이 지나고 오늘 OnDelete(action = OnDeleteAction.CASECADE) 없이 삭제 메소드를 실행해봤는데 제목과 같은 문제들이 발생하지 않고 성공적으로 실행되었다.
+
+왜 이런 현상이 발생하는지는 추가적인 학습이 필요하다.
+
 <br><br>
 # 📋 ERD
 
