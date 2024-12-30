@@ -1,4 +1,3 @@
-![image](https://github.com/user-attachments/assets/6026e4eb-6de5-4c75-b2a0-2b3985d1af65)<div align="center"> 
 <h1>찰떡딜</h1>
 </div>
 <p align="center">
