@@ -12,6 +12,7 @@ import com.auction.bid.global.exception.exceptions.ProductException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -35,6 +36,7 @@ public class WebSocketBidHandler extends TextWebSocketHandler {
 
     private final ObjectMapper objectMapper;
     private final ProductRepository productRepository;
+    @Qualifier("productRedisTemplate")
     private final RedisTemplate<String, Object> redisTemplate;
     private final MemberService memberService;
 

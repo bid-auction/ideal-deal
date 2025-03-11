@@ -18,6 +18,7 @@ import com.auction.bid.global.security.jwt.JWTUtil;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -44,6 +45,7 @@ public class MemberServiceImpl implements MemberService{
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final JavaMailSender mailSender;
     private final JWTUtil jwtUtil;
+    @Qualifier("productRedisTemplate")
     private final RedisTemplate<String, Object> redisTemplate;
     private final RefreshTokenRepository refreshTokenRepository;
     private final QueryDslRepository queryDslRepository;
@@ -74,6 +76,7 @@ public class MemberServiceImpl implements MemberService{
      * @return 이메일 주소
      */
     @Override
+    @Qualifier("productRedisTemplate")
     public String sendEmail(String to) {
         MimeMessage message = mailSender.createMimeMessage();
         String token = UUID.randomUUID().toString().substring(0, 6);
@@ -103,6 +106,7 @@ public class MemberServiceImpl implements MemberService{
      * @return 인증 성공 여부
      */
     @Override
+    @Qualifier("productRedisTemplate")
     public boolean verifyEmail(String email, String token) {
         if (Boolean.FALSE.equals(redisTemplate.hasKey(email))) {
             throw new MailException(ErrorCode.TOKEN_NOT_FOUND);
@@ -122,6 +126,7 @@ public class MemberServiceImpl implements MemberService{
      * @return 멤버 UUID
      */
     @Override
+    @Qualifier("productRedisTemplate")
     public String logout(String token) {
         if (token == null || !token.startsWith(ConstSecurity.BEARER)) {
             throw new AuthException(ErrorCode.INVALID_TOKEN);

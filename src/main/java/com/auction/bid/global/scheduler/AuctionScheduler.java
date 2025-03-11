@@ -6,6 +6,7 @@ import com.auction.bid.domain.product.Product;
 import com.auction.bid.domain.product.ProductBidPhase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
@@ -26,6 +27,7 @@ import static com.auction.bid.global.scheduler.ConstAuction.AUCTION;
 @Slf4j
 public class AuctionScheduler {
 
+    @Qualifier("productRedisTemplate")
     private final RedisTemplate<String, Object> redisTemplate;
     private final SchedulerService schedulerService;
     private final MemberService memberService;
