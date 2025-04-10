@@ -1,5 +1,6 @@
 package com.auction.bid.domain.redisCart;
 
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,7 +19,7 @@ public class CartController {
 
     // 장바구니에 항목 추가
     @PostMapping("/add")
-    public ResponseEntity<String> addToCart(@RequestParam String userId, @RequestBody CartItem cartItem){
+    public ResponseEntity<String> addToCart(@RequestParam String userId, @RequestBody @Valid CartItem cartItem){
         cartService.addToCart(userId, cartItem);
         return ResponseEntity.ok("Item added to cart");
     }
