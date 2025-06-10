@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.stereotype.Repository;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import static com.auction.bid.global.exception.ErrorCode.FAILED_TO_ADD_ITEM_TO_CART;
 
@@ -94,7 +96,13 @@ public class CartRepository {
 
         try{
             CartItem currentItem = (CartItem) redisTemplate.opsForHash().get(key, item.getProductId());
-            if (currentItem != null){
+            if (currentItem == null){
+                // 없으면 예외 던지기
+                throw new CartOperationException(
+                        ErrorCode.FAILED_TO_DELETE_ITEM_CART,
+                        new DataRetrievalFailureException("No cart item for productId=" + item.getProductId())
+                );
+            }
                 int newQuantity = currentItem.getQuantity()-quantityToRemove;
                 if (newQuantity > 0){
                     currentItem.setQuantity(newQuantity);
@@ -103,7 +111,7 @@ public class CartRepository {
                     Long removedCount = redisTemplate.opsForHash().delete(key, item.getProductId());
                     System.out.println("Deleted count: " + removedCount);
                 }
-            }
+
         }catch (DataAccessException ex){
             logger.error("Error deleting cart for user : " + userId, ex);
             throw new CartOperationException(ErrorCode.FAILED_TO_DELETE_ITEM_CART, ex);
