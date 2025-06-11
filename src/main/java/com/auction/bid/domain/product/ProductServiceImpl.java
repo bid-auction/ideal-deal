@@ -17,9 +17,9 @@ import com.auction.bid.global.exception.exceptions.ProductException;
 import com.auction.bid.global.querydsl.QueryDslRepository;
 import com.auction.bid.global.scheduler.AuctionScheduler;
 import com.auction.bid.global.security.jwt.JWTUtil;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +28,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -45,7 +47,7 @@ import static com.auction.bid.global.scheduler.ConstAuction.AUCTION;
 
 @Slf4j
 @Service
-@Transactional
+//@Transactional
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
@@ -56,6 +58,7 @@ public class ProductServiceImpl implements ProductService {
     private final TaskScheduler taskScheduler;
     private final AuctionScheduler auctionScheduler;
     private final QueryDslRepository queryDslRepository;
+    @Qualifier("productRedisTemplate")
     private final RedisTemplate<String, Object> redisTemplate;
     private final JWTUtil jwtUtil;
 
@@ -67,6 +70,7 @@ public class ProductServiceImpl implements ProductService {
      * @return 등록된 상품 정보
      */
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public ProductDto.Response register(List<MultipartFile> images, ProductDto.Request request, String token) {
         if (request.getAuctionStart().isBefore(LocalDateTime.now())) {
             throw new ProductException(ErrorCode.INVALID_AUCTION_START_TIME_NOW_AFTER);
@@ -98,6 +102,7 @@ public class ProductServiceImpl implements ProductService {
      * @param product 상품 엔티티
      * @param images 업로드할 이미지 리스트
      */
+
     private void uploadPhoto(Product product, List<MultipartFile> images){
 
         try {
@@ -168,6 +173,7 @@ public class ProductServiceImpl implements ProductService {
      * @return 주간 판매 순위 (카테고리별로 정렬된 맵 형태)
      */
     @Override
+    @Transactional(readOnly = true)
     public Map<String, List<RankingResponse>> getRankings() {
         LocalDate now = LocalDate.now();
         LocalDateTime startOfWeek = now.with(DayOfWeek.MONDAY).atStartOfDay();
@@ -192,6 +198,7 @@ public class ProductServiceImpl implements ProductService {
      * @return 경매 시작 전 상품 목록
      */
     @Override
+    @Transactional(readOnly = true)
     public Page<PhaseCriteriaResponse> getBidBefore(int page, int size) {
         return getPhaseResponse(page, size, ProductBidPhase.BEFORE);
     }
@@ -204,6 +211,7 @@ public class ProductServiceImpl implements ProductService {
      * @return 진행 중인 상품 목록
      */
     @Override
+    @Transactional(readOnly = true)
     public Page<PhaseCriteriaResponse> getBidOngoing(int page, int size) {
         return getPhaseResponse(page, size, ProductBidPhase.ONGOING);
     }
@@ -216,6 +224,7 @@ public class ProductServiceImpl implements ProductService {
      * @return 종료된 상품 목록
      */
     @Override
+    @Transactional(readOnly = true)
     public Page<PhaseCriteriaResponse> getBidEnded(int page, int size) {
         return getPhaseResponse(page, size, ProductBidPhase.ENDED);
     }
@@ -233,6 +242,7 @@ public class ProductServiceImpl implements ProductService {
      * @throws CategoryException 카테고리가 존재하지 않을 경우 예외 발생
      */
     @Override
+    @Transactional
     public ProductDto.Response update(Long productId, List<MultipartFile> images, ProductDto.Request request, String token) {
 
         if (productRepository.existsByTitle(request.getTitle())){
@@ -277,6 +287,7 @@ public class ProductServiceImpl implements ProductService {
      * @return 요청된 페이지의 인기 상품 리스트
      */
     @Override
+    @Transactional(readOnly = true)
     public List<HotResponse> getHotPage(int page, int size) {
         int start = (page - 1) * size;
         int end = page * size;
@@ -291,6 +302,7 @@ public class ProductServiceImpl implements ProductService {
      * @return 가장 높은 순위의 상품 리스트
      */
     @Override
+    @Transactional(readOnly = true)
     public Page<RankingResponse> getRankingsHighest(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Sale> highestPage = queryDslRepository.getHighestSaleList(pageable);
@@ -305,6 +317,7 @@ public class ProductServiceImpl implements ProductService {
      * @return 가장 낮은 순위의 상품 리스트
      */
     @Override
+    @Transactional(readOnly = true)
     public Page<RankingResponse> getRankingsLowest(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Sale> lowestSaleList = queryDslRepository.getLowestSaleList(pageable);
@@ -319,6 +332,8 @@ public class ProductServiceImpl implements ProductService {
      * @return 인기 상품 리스트
      */
     @Override
+    @Transactional(readOnly = true)
+    @Qualifier("productRedisTemplate")
     public List<HotResponse> getHotResponse(int start, int end) {
         HashOperations<String, Long, List<BidDto>> redisHash = redisTemplate.opsForHash();
         Map<Long, List<BidDto>> hashEntries = redisHash.entries(AUCTION);
@@ -359,6 +374,7 @@ public class ProductServiceImpl implements ProductService {
      * @return 메인 페이지 응답 데이터
      */
     @Override
+    @Transactional(readOnly = true)
     public MainResponse getMainPage() {
         List<HotResponse> hotPage = getHotPage(1, 10);
         Page<PhaseCriteriaResponse> beforePhase = getPhaseResponse(0, 10, ProductBidPhase.BEFORE);
@@ -396,6 +412,7 @@ public class ProductServiceImpl implements ProductService {
      * @param productId 삭제할 상품의 ID
      */
     @Override
+    @Transactional
     public void delete(Long productId){
         productRepository.deleteById(productId);
     }
@@ -408,6 +425,7 @@ public class ProductServiceImpl implements ProductService {
      * @throws ProductException 상품이 존재하지 않을 경우 예외 발생
      */
     @Override
+    @Transactional(readOnly = true)
     public Product findById(Long productId) {
         return productRepository.findById(productId)
                 .orElseThrow(() -> new ProductException(ErrorCode.NOT_EXISTS_PRODUCT));
@@ -422,6 +440,7 @@ public class ProductServiceImpl implements ProductService {
      * @throws ProductException 상품이 존재하지 않을 경우 예외 발생
      */
     @Override
+    @Transactional(readOnly = true)
     public ProductGetDto.Response getProduct(Long productId){
         List<Photo> photos = photoRepository.findByProductId(productId);
         if (photos.isEmpty()){
