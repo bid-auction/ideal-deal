@@ -1,6 +1,7 @@
 package com.auction.bid.domain.redisCart;
 
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,7 +14,7 @@ public class CartController {
 
     private final CartService cartService;
 
-    public CartController(CartService cartService) {
+    public CartController(@Qualifier("localCartService") CartService cartService) {
         this.cartService = cartService;
     }
 
@@ -26,8 +27,8 @@ public class CartController {
 
     // 장바구니 목록 조회
     @GetMapping("/{userId}")
-    public ResponseEntity<Map<Object, Object>> getCart(@PathVariable String userId){
-        Map<Object, Object> cartItems = cartService.getCart(userId);
+    public ResponseEntity<List<CartItem>> getCart(@PathVariable String userId){
+        List<CartItem> cartItems = cartService.getCart(userId);
         return ResponseEntity.ok(cartItems);
     }
 

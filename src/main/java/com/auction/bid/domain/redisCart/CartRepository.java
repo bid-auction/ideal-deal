@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 import static com.auction.bid.global.exception.ErrorCode.FAILED_TO_ADD_ITEM_TO_CART;
 
@@ -60,9 +61,16 @@ public class CartRepository {
     }
 
     // 장바구니 목록 조회
-    public Map<Object, Object> getCart(String userId){
+    public List<CartItem> getCart(String userId){
         try {
-            return redisTemplate.opsForHash().entries("cart:"+userId);
+            // 1) Redis에서 Map<Object, Object>로 꺼내고
+            Map<Object, Object> entries =  redisTemplate.opsForHash().entries("cart:"+userId);
+
+            // 2) 각 Map의 value를 CartItem으로 캐스팅한 뒤
+            // 3) List<CartItem> 으로 수집해 리턴
+            return entries.values().stream()
+                    .map(v -> (CartItem) v)
+                    .collect(Collectors.toList());
         } catch (DataAccessException ex){
             logger.error("Error retrieving cart for user : " + userId, ex);
             throw new CartOperationException(ErrorCode.FAILED_TO_RETRIEVE_CART, ex);
