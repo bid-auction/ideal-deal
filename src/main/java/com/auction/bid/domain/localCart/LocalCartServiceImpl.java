@@ -3,9 +3,11 @@ package com.auction.bid.domain.localCart;
 import com.auction.bid.domain.redisCart.CartItem;
 import com.auction.bid.domain.redisCart.CartService;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.mail.MailParseException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,7 +39,13 @@ public class LocalCartServiceImpl implements CartService {
 
     @Override
     public void removeFromCart(String userId, CartItem item, int quantityToRemove) {
-
+        Map<String, Integer> map = localCartRepository.findAll(userId);
+        Integer existing = map.get(item.getProductId());
+        if (existing == null){
+            throw new IllegalStateException("No such item in cart"); // 혹은 커스텀 예외
+        }
+        int newQty = existing-quantityToRemove;
+        localCartRepository.updateQuantity(userId, item.getProductId(), newQty);
     }
 
     @Override

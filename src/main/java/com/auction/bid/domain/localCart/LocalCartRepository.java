@@ -18,6 +18,14 @@ public class LocalCartRepository {
                 .merge(productId, delta, Integer::sum);
     }
 
+    public void updateQuantity(String userId, String productId, int newQty){
+        Map<String, Integer> cart = storage.get(userId);
+        if (cart != null){
+            if (newQty > 0) cart.put(productId, newQty);
+            else            cart.remove(productId);
+        }
+    }
+
     public Map<String, Integer> findAll(String userId){
         return new HashMap<>(storage.getOrDefault(userId, Collections.emptyMap()));
     }
