@@ -1,10 +1,13 @@
 package com.auction.bid.domain.localCart;
 
 import com.auction.bid.domain.redisCart.CartItem;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -85,4 +88,99 @@ class LocalCartServiceImplTest {
         // 그리고 findAll()이 1회 호출됐음을 검증
         verify(mockRepository, times(1)).findAll(userId);
     }
+
+    private CartItem item(String productId, int qty){
+        CartItem ci = new CartItem();
+        ci.setProductId(productId);
+        ci.setQuantity(qty);
+        return ci;
+    }
+
+    @Test
+    @DisplayName("given: 기존 수량 5, when: 2개 삭제, then: updateQuantity(user, prod, 3) 호출")
+    void removeFromCart_decreaseQuantity_success(){
+        // given
+        String userId = "user123";
+        String productId = "prodA";
+        CartItem cartItem = item(productId, 2);
+
+        Map<String, Integer> fake = new HashMap<>();
+        fake.put(productId, 5);
+        when(mockRepository.findAll(userId)).thenReturn(fake);
+
+        // when
+        localCartServiceImpl.removeFromCart(userId, cartItem, 2);
+
+        // then
+        verify(mockRepository, times(1)).updateQuantity(userId, productId, 3);
+        verify(mockRepository, times(1)).findAll(userId);
+        verifyNoMoreInteractions(mockRepository);
+    }
+
+    @Test
+    @DisplayName("given: 기존 수량 2, when: 2개 삭제, then: updateQuantity(user, prod, 0) 호출(레포는 0이하면 삭제 처리)")
+    void removeFromCart_removeEntry_whenBecomesZero(){
+        // given
+        String userId = "user123";
+        String productId = "prodB";
+        CartItem cartItem = item(productId, 2);
+
+        Map<String, Integer> fake = new HashMap<>();
+        fake.put(productId, 2);
+        when(mockRepository.findAll(userId)).thenReturn(fake);
+
+        // when
+        localCartServiceImpl.removeFromCart(userId, cartItem, 2);
+
+        // then
+        verify(mockRepository, times(1))
+                .updateQuantity(userId, productId, 0); // 레포에서 0이면 remove(productId)
+        verify(mockRepository, times(1)).findAll(userId);
+        verifyNoMoreInteractions(mockRepository);
+    }
+
+
+    @Test
+    @DisplayName("given: 장바구니에 상품이 없음, when: 삭제 요청, then: IllegalArgumentException 발생")
+    void removeFromCart_noSuchItem_throws(){
+        // given
+        String userId = "user123";
+        String productId = "prodX";
+        CartItem cartItem = item(productId, 1);
+
+        Map<String, Integer> fake = new HashMap<>(); // empty
+        when(mockRepository.findAll(userId)).thenReturn(fake);
+
+        // when & then
+        IllegalStateException ex = assertThrows(IllegalStateException.class,
+                () -> localCartServiceImpl.removeFromCart(userId, cartItem, 1));
+        assertTrue(ex.getMessage() == null || ex.getMessage().toLowerCase().contains("no such"),
+                "예외 메시지에 'no such' 유사 문구가 있으면 친절합니다.");
+
+        verify(mockRepository, times(1)).findAll(userId);
+        verify(mockRepository, never()).updateQuantity(anyString(), anyString(), anyInt());
+        verifyNoMoreInteractions(mockRepository);
+    }
+
+    @Test
+    @DisplayName("given: 음수/0 개수 요청, when: 삭제 요청, then: 잘못된 입력 처리(예외) - (선택)")
+    void removeFromCart_invalidRemoveCount_throws() {
+        // given
+        String userId = "user123";
+        String productId = "prodA";
+        CartItem cartItem = item(productId, 0);
+
+        Map<String, Integer> fake = new HashMap<>();
+        fake.put(productId, 5);
+        when(mockRepository.findAll(userId)).thenReturn(fake);
+
+        // when & then
+        assertThrows(IllegalArgumentException.class,
+                ()->localCartServiceImpl.removeFromCart(userId, cartItem, 0));
+
+
+        verify(mockRepository, never()).findAll(userId);
+        verify(mockRepository, never()).updateQuantity(any(), any(), anyInt());
+    }
+
 }

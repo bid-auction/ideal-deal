@@ -39,6 +39,9 @@ public class LocalCartServiceImpl implements CartService {
 
     @Override
     public void removeFromCart(String userId, CartItem item, int quantityToRemove) {
+
+        validateRemoveArgs(userId, item, quantityToRemove);
+
         Map<String, Integer> map = localCartRepository.findAll(userId);
         Integer existing = map.get(item.getProductId());
         if (existing == null){
@@ -46,6 +49,21 @@ public class LocalCartServiceImpl implements CartService {
         }
         int newQty = existing-quantityToRemove;
         localCartRepository.updateQuantity(userId, item.getProductId(), newQty);
+    }
+
+    private void validateRemoveArgs(String userId, CartItem item, int qty){
+        if (userId == null || userId.isBlank()){
+            throw new IllegalArgumentException("userId must not be blank");
+        }
+        if (item == null){
+            throw new IllegalArgumentException("cartItem must not be null");
+        }
+        if (item.getProductId() == null || item.getProductId().isBlank()){
+            throw new IllegalArgumentException("productId must not be blank");
+        }
+        if (qty <= 0){
+            throw new IllegalArgumentException("quantityToRemove must be positive");
+        }
     }
 
     @Override
