@@ -68,6 +68,6 @@ public class LocalCartServiceImpl implements CartService {
 
     @Override
     public void clearCart(String userId) {
-
+        localCartRepository.clear(userId);
     }
 }

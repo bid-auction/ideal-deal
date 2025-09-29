@@ -29,4 +29,8 @@ public class LocalCartRepository {
     public Map<String, Integer> findAll(String userId){
         return new HashMap<>(storage.getOrDefault(userId, Collections.emptyMap()));
     }
+
+    public void clear(String userId){
+        storage.remove(userId);
+    }
 }
