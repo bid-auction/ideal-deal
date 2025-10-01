@@ -5,6 +5,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.convert.DataSizeUnit;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -183,4 +184,67 @@ class LocalCartServiceImplTest {
         verify(mockRepository, never()).updateQuantity(any(), any(), anyInt());
     }
 
+    @Test
+    @DisplayName("given: 장바구니에 아이템이 있음, when: clear(user), then: 해당 사용자 장바구니 비워짐")
+    void clear_removesAllItems_forUser(){
+        // given
+        LocalCartRepository repo = new LocalCartRepository();
+        String userId = "user123";
+        repo.updateQuantity(userId, "prodA", 2);
+        repo.updateQuantity(userId, "prodB", 3);
+        assertFalse(repo.findAll(userId).isEmpty(), "사전조건: 장바구니가 비어있지 않아야 함");
+
+        // when
+        repo.clear(userId);
+
+        // then
+        Map<String, Integer> after = repo.findAll(userId);
+        assertNotNull(after);
+        assertTrue(after.isEmpty(), "clear 이후에는 빈 맵이어야 함");
+    }
+
+    @Test
+    @DisplayName("given: 이미 빈 장바구니, when: clear(user), then: 예외 없이 여전히 빈 맵")
+    void clear_onEmptyCart_noException(){
+        // given
+        LocalCartRepository repo = new LocalCartRepository();
+        String userId = "emptyUser";
+        assertTrue(repo.findAll(userId).isEmpty());
+    }
+
+    @Test
+    @DisplayName("given: 두 사용자 데이터, when: A만 clear, then: B의 장바구니는 보존")
+    void clear_isUserScoped_onlyTargetUserRemoved(){
+        // given
+        LocalCartRepository repo = new LocalCartRepository();
+        String userA = "userA";
+        String userB = "userB";
+        repo.updateQuantity(userA, "prodA", 1);
+        repo.updateQuantity(userB, "prodB", 5);
+
+        // when
+        repo.clear(userA);
+
+        // then
+        assertTrue(repo.findAll(userA).isEmpty(), "A는 비워져야 함");
+        Map<String, Integer> bCart = repo.findAll(userB);
+        assertEquals(1, bCart.size());
+        assertEquals(5, bCart.get("prodB"));
+    }
+
+    @Test
+    @DisplayName("clear는 멱등(idempotent)해야 한다: 여러 번 호출해도 결과 동일")
+    void clear_isIdempotent(){
+        //given
+        LocalCartRepository repo = new LocalCartRepository();
+        String userId = "user123";
+        repo.updateQuantity(userId, "prodA", 2);
+
+        // when
+        repo.clear(userId);
+        repo.clear(userId);
+
+        // then
+        assertTrue(repo.findAll(userId).isEmpty());
+    }
 }

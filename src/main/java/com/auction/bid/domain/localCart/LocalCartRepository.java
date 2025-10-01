@@ -19,11 +19,12 @@ public class LocalCartRepository {
     }
 
     public void updateQuantity(String userId, String productId, int newQty){
-        Map<String, Integer> cart = storage.get(userId);
-        if (cart != null){
+
+        Map<String, Integer> cart = storage.computeIfAbsent(userId, k->new HashMap<>());
+
             if (newQty > 0) cart.put(productId, newQty);
             else            cart.remove(productId);
-        }
+
     }
 
     public Map<String, Integer> findAll(String userId){
