@@ -166,7 +166,7 @@ class MemberServiceImplUnitTest {
 
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(jwtUtil.getTokenFromHeader(anyString())).thenReturn(jwtToken);
-        when(jwtUtil.getMemberUUIDFromToken(anyString())).thenReturn(UUID.fromString(memberId));
+        when(jwtUtil.getMemberIdFromToken(anyString())).thenReturn(memberId);
 
         String actual = memberService.logout(token);
 
