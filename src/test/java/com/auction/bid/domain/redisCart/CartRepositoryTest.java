@@ -9,7 +9,10 @@ import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -143,6 +146,7 @@ class CartRepositoryTest {
         });
     }
 
+
     @Test
     void getCart_success_returnsEntries(){
         // ---Given: RedisTemplate과 HashOperation를 모의(mock)로 설정
@@ -157,21 +161,34 @@ class CartRepositoryTest {
 
         // Redis에서 조회할 가짜 맵 데이터 준비
         Map<Object, Object> fakeEntries = new HashMap<>();
-        fakeEntries.put("prodA", 5);
-        fakeEntries.put("prodB", 2);
+        // fakeEntries.put(, CartItem)이 되어야함. 시도해볼것
+        fakeEntries.put("prodA", new CartItem("prodA", "A", 2, 100000));
+        fakeEntries.put("prodB", new CartItem("prodB", "B", 3, 300000));
 
+        // when
         // entries(key) 호출 시 fakeEntries를 반환하도록 설정
         when(mockHashOps.entries(key)).thenReturn(fakeEntries);
 
+        List<CartItem> expected = fakeEntries.values().stream()
+                .map(v -> (CartItem) v)
+                .collect(Collectors.toList());
+
         CartRepository repository = new CartRepository(mockRedisTemplate);
 
-        // --- when: getCart() 호출 ---
-        Map<Object, Object> result = repository.getCart(userId);
+        /*
+        Map<Object, Object> entries = mockRedisTemplate.opsForHash().entries("cart:" + userId);
+        entries.forEach((k, v) -> System.out.println(k + " -> " + v.getClass()));
+         */
 
-        // ---Then: mockHashOps.entries(key) 가 1번 호출되고, 반환된 맵 그대로 리턴되는지 검증 ---
-        verify(mockHashOps, times(1)).entries(key);
-        assertSame(fakeEntries, result, "getCart() should return exactly the map returned by opsForHash().entries()");
+        // --- when: getCart() 호출 ---
+        List<CartItem> result = repository.getCart(userId);
+
+
+        // ---Then
+        assertEquals(expected.size(), result.size());
+        assertTrue(result.containsAll(expected));
     }
+
 
     @Test
     void removeFromCart_NoExistingItem() {
@@ -197,10 +214,13 @@ class CartRepositoryTest {
         CartRepository cartRepository = new CartRepository(mockRedisTemplate);
 
 
-        // THEN: getCart() 호출 시, 위에서 시뮬레이션한 예외가 발생하여 CartOperationException 이 던져져야 함
-        assertThrows(CartOperationException.class, () -> {
+        // when: getCart() 호출 시, 위에서 시뮬레이션한 예외가 발생하여 CartOperationException 이 던져져야 함
+        CartOperationException ex = assertThrows(CartOperationException.class, () -> {
             cartRepository.removeFromCart(userId, cartItem, quantityToRemove);
         });
+
+        // 아이템이 null일때 예외 터지고 메세지 제대로 던져지고 있는지 확인
+        assertEquals(ErrorCode.FAILED_TO_DELETE_ITEM_CART, ex.getErrorCode());
 
         // Then: get()이 null을 반환하였으므로, put()이 delete() 호출이 없어야 함.
         Mockito.verify(mockHashOps, Mockito.never()).put(Mockito.anyString(), Mockito.any(), Mockito.any());
