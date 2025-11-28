@@ -61,9 +61,6 @@ public class Member extends BaseEntity {
     @Column(name = "role")
     private String role;
 
-    @Embedded
-    private Address address;
-
     public Long addBalance(Long chargeMoney) {
         if (this.balance == null) {
             setBalance(0L);
