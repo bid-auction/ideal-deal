@@ -1,9 +1,9 @@
 package com.auction.bid.domain.member.service;
 
-import com.auction.bid.domain.member.Address;
 import com.auction.bid.domain.member.MemberRepository;
 import com.auction.bid.domain.member.MemberService;
 import com.auction.bid.domain.member.dto.SignUpDto;
+import com.auction.bid.domain.memberAddress.MemberAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,8 +34,8 @@ public class MemberServiceImplIntegrTest {
                 .name("testName")
                 .phoneNumber("010-1234-5678")
                 .emailVerified(true)
-                .address(
-                        Address.builder()
+                .addressRequest(
+                        MemberAddress.builder()
                                 .city("seoul")
                                 .street("saemalo")
                                 .zipcode("548")

@@ -1,9 +1,10 @@
 package com.auction.bid.domain.member.service;
 
-import com.auction.bid.domain.member.Address;
 import com.auction.bid.domain.member.MemberRepository;
 import com.auction.bid.domain.member.MemberServiceImpl;
 import com.auction.bid.domain.member.dto.SignUpDto;
+import com.auction.bid.domain.memberAddress.MemberAddress;
+import com.auction.bid.domain.memberAddress.MemberAddressRepository;
 import com.auction.bid.global.exception.ErrorCode;
 import com.auction.bid.global.exception.exceptions.AuthException;
 import com.auction.bid.global.exception.exceptions.MailException;
@@ -15,6 +16,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -50,6 +53,9 @@ class MemberServiceImplUnitTest {
     BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Mock
+    MemberAddressRepository memberAddressRepository;
+
+    @Mock
     private RedisTemplate<String, Object> redisTemplate;
 
     @InjectMocks
@@ -57,6 +63,10 @@ class MemberServiceImplUnitTest {
 
     SignUpDto.Request signUpReq;
     SignUpDto.Response signUpRes;
+
+    @Captor
+    ArgumentCaptor<MemberAddress> addrCaptor;
+
 
     @BeforeEach
     void setUp() {
@@ -68,8 +78,8 @@ class MemberServiceImplUnitTest {
                 .name("testName")
                 .phoneNumber("010-1234-5678")
                 .emailVerified(true)
-                .address(
-                        Address.builder()
+                .addressRequest(
+                        MemberAddress.builder()
                                 .city("seoul")
                                 .street("saemalo")
                                 .zipcode("548")
@@ -91,12 +101,22 @@ class MemberServiceImplUnitTest {
                 .thenReturn(false);
         when(memberRepository.save(any()))
                 .thenReturn(SignUpDto.Request.toEntity(signUpReq, "pass"));
+        when(memberAddressRepository.save(any(MemberAddress.class)))
+                .thenReturn(SignUpDto.Request.toAddressEntity(signUpReq, SignUpDto.Request.toEntity(signUpReq, "pass") , true));
 
         SignUpDto.Response actual = memberService.signUp(signUpReq);
 
         assertEquals(signUpReq.getLoginId(), actual.getLoginId());
         assertEquals(signUpReq.getName(), actual.getName());
         assertEquals(signUpReq.getNickname(), actual.getNickname());
+
+        verify(memberAddressRepository).save(addrCaptor.capture());
+        MemberAddress saved = addrCaptor.getValue();
+
+        assertEquals(signUpReq.getAddressRequest().getCity(), saved.getCity());
+        assertEquals(signUpReq.getAddressRequest().getStreet(), saved.getStreet());
+        assertEquals(signUpReq.getAddressRequest().getZipcode(), saved.getZipcode());
+        assertEquals(actual.getId(), saved.getMember().getId());
     }
 
     @Test

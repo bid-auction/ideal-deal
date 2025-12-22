@@ -4,6 +4,8 @@ import com.auction.bid.domain.auction.Auction;
 import com.auction.bid.domain.auction.AuctionStatus;
 import com.auction.bid.domain.bid.Bid;
 import com.auction.bid.domain.member.dto.*;
+import com.auction.bid.domain.memberAddress.MemberAddress;
+import com.auction.bid.domain.memberAddress.MemberAddressRepository;
 import com.auction.bid.domain.sale.Sale;
 import com.auction.bid.domain.sale.SaleStatus;
 import com.auction.bid.global.exception.ErrorCode;
@@ -49,6 +51,7 @@ public class MemberServiceImpl implements MemberService{
     private final RedisTemplate<String, Object> redisTemplate;
     private final RefreshTokenRepository refreshTokenRepository;
     private final QueryDslRepository queryDslRepository;
+    private final MemberAddressRepository memberAddressRepository;
 
     /**
      * 회원가입 처리
@@ -67,6 +70,11 @@ public class MemberServiceImpl implements MemberService{
 
         String encodedPassword = bCryptPasswordEncoder.encode(request.getPassword());
         Member savedMember = memberRepository.save(SignUpDto.Request.toEntity(request, encodedPassword));
+
+        if (request.getAddressRequest() != null){
+            MemberAddress address = SignUpDto.Request.toAddressEntity(request, savedMember, true);
+            memberAddressRepository.save(address);
+        }
         return SignUpDto.Response.fromEntity(savedMember);
     }
 

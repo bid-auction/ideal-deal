@@ -1,8 +1,8 @@
 package com.auction.bid.domain.member.controller;
 
-import com.auction.bid.domain.member.Address;
 import com.auction.bid.domain.member.dto.EmailDto;
 import com.auction.bid.domain.member.dto.SignUpDto;
+import com.auction.bid.domain.memberAddress.MemberAddress;
 import com.auction.bid.global.security.ConstSecurity;
 import com.auction.bid.global.security.jwt.JWTUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,7 +40,7 @@ class MemberControllerIntegrTest {
     SignUpDto.Response signUpRes;
 
     @BeforeEach()
-    private void setUp() {
+    public void setUp() {
         signUpReq = SignUpDto.Request.builder()
                 .loginId("testLoginId")
                 .password("1234567890")
@@ -49,8 +49,8 @@ class MemberControllerIntegrTest {
                 .name("testName")
                 .phoneNumber("010-1234-5678")
                 .emailVerified(true)
-                .address(
-                        Address.builder()
+                .addressRequest(
+                        MemberAddress.builder()
                                 .city("seoul")
                                 .street("saemalo")
                                 .zipcode("548")

@@ -2,9 +2,11 @@ package com.auction.bid.domain.memberAddress;
 
 import com.auction.bid.domain.member.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+
 
 public interface MemberAddressRepository extends JpaRepository<MemberAddress, Long> {
 
