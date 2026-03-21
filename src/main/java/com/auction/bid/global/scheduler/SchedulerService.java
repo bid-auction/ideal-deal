@@ -62,11 +62,11 @@ public class SchedulerService {
             return;
         }
 
-        Product findProduct = productRepository.findById(productId)
+        Auction findAuction = auctionRepository.findById(productId)
                 .orElseThrow(() -> new ProductException(ErrorCode.NOT_EXISTS_PRODUCT));
 
         if (bidDtoList.isEmpty()) {
-            bidRepository.save(BidDto.toBidEntity(new BidDto(), null, findProduct));
+            bidRepository.save(BidDto.toBidEntity(new BidDto(), null, findAuction));
             return;
         }
 
@@ -83,7 +83,7 @@ public class SchedulerService {
                 .map(bidDto -> BidDto.toBidEntity(
                         bidDto,
                         memberMap.get(bidDto.getMemberId()),
-                        findProduct)
+                        findAuction)
                 )
                 .forEach(bidRepository::save);
     }

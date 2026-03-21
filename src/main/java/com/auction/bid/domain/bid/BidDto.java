@@ -1,5 +1,6 @@
 package com.auction.bid.domain.bid;
 
+import com.auction.bid.domain.auction.Auction;
 import com.auction.bid.domain.member.Member;
 import com.auction.bid.domain.product.Product;
 import lombok.AllArgsConstructor;
@@ -19,6 +20,10 @@ import java.util.List;
 @NoArgsConstructor
 public class BidDto {
 
+    // productId가 있는 부분들을 auctionId로 수정해야한다.
+    // 하지만 productId가 속해있는 메소드들이 사용되어지는 곳들이 있다.
+    // 이 문제를 해결해야한다.
+    // emptyDtoList(), BidDtoBuilder()등
     private Long productId;
     private Long memberId;
     private String nickname;
@@ -35,11 +40,11 @@ public class BidDto {
                 .build();
     }
 
-    public static Bid toBidEntity(BidDto bidDto, Member member, Product product) {
+    public static Bid toBidEntity(BidDto bidDto, Member member, Auction auction) {
 
         return Bid.builder()
                 .member(member)
-                .product(product)
+                .auction(auction)
                 .bidAmount(bidDto.getBidAmount())
                 .bidTime(bidDto.getBidTime())
                 .build();

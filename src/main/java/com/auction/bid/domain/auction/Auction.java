@@ -6,12 +6,14 @@ import com.auction.bid.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-public class Auction extends BaseEntity {
+public class Auction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,6 +24,10 @@ public class Auction extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private AuctionStatus auctionStatus;
+
+    private LocalDateTime auction_start;
+
+    private LocalDateTime auction_end;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
