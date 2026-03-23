@@ -24,15 +24,15 @@ public class BidDto {
     // 하지만 productId가 속해있는 메소드들이 사용되어지는 곳들이 있다.
     // 이 문제를 해결해야한다.
     // emptyDtoList(), BidDtoBuilder()등
-    private Long productId;
+    private Long auctionId;
     private Long memberId;
     private String nickname;
     private Long bidAmount;
     private LocalDateTime bidTime;
 
-    public static BidDto emptyDtoList(Long productId) {
+    public static BidDto emptyDtoList(Long auctionId) {
         return BidDto.builder()
-                .productId(productId)
+                .auctionId(auctionId)
                 .memberId(null)
                 .nickname(null)
                 .bidAmount(null)
@@ -87,9 +87,9 @@ public class BidDto {
         return LocalDateTime.parse(bidTimeStr, formatter);
     }
 
-    private static BidDto bidDtoBuild(Long productId, Long memberId, String nickname, Long bidAmount, LocalDateTime bidTime) {
+    private static BidDto bidDtoBuild(Long auctionId, Long memberId, String nickname, Long bidAmount, LocalDateTime bidTime) {
         return BidDto.builder()
-                .productId(productId)
+                .auctionId(auctionId)
                 .memberId(memberId)
                 .nickname(nickname)
                 .bidAmount(bidAmount)
