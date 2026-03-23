@@ -55,7 +55,6 @@ public class SignUpDto {
                     .name(request.getName())
                     .phoneNumber(request.getPhoneNumber())
                     .emailVerified(true)
-                    .provider("simple")
                     .role(ConstSecurity.ROLE_MEMBER)
                     .build();
         }

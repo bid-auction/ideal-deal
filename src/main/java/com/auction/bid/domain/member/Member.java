@@ -31,12 +31,6 @@ public class Member extends BaseEntity {
     @Column(name = "name")
     private String name;
 
-    @Column(name = "provider")
-    private String provider;
-
-    @Column(name = "provider_id")
-    private String providerId;
-
     @Column(name = "login_id")
     private String loginId;
 

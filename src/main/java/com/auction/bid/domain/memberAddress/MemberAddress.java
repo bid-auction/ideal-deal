@@ -36,7 +36,7 @@ public class MemberAddress {
     @Column(name = "street", length = 255)
     private String street;
 
-    @Column(name = "is_default", nullable = false)
+    @Column(name = "zipcode", nullable = false)
     private String zipcode;
 
     @Column(name = "is_default", nullable = false)
