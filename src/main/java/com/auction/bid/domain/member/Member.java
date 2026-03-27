@@ -14,7 +14,6 @@ import java.util.UUID;
 @Getter
 @Table(name = "member",
         indexes = {
-                @Index(name = "idx_provider_id", columnList = "provider_id"),
                 @Index(name = "idx_member_uuid", columnList = "member_uuid")
         }
 )

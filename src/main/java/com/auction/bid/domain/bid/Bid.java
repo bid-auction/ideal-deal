@@ -2,11 +2,9 @@ package com.auction.bid.domain.bid;
 
 import com.auction.bid.domain.auction.Auction;
 import com.auction.bid.domain.member.Member;
-import com.auction.bid.domain.product.Product;
 import com.auction.bid.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.cglib.core.Local;
 
 import java.time.LocalDateTime;
 

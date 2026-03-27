@@ -21,13 +21,14 @@ import static lombok.AccessLevel.PROTECTED;
 @AllArgsConstructor(access = PROTECTED)
 public class MemberAddress {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "member_address_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "member_id", nullable = false,
-    foreignKey = @ForeignKey(name = "fk_member_address_member"))
+            foreignKey = @ForeignKey(name = "fk_member_address_member"))
     private Member member;
 
     @Column(name = "city", length = 255)
@@ -42,12 +43,16 @@ public class MemberAddress {
     @Column(name = "is_default", nullable = false)
     private boolean isDefault;
 
-    // CASE WHEN is_default THEN 1 ELSE NULL END (가상 컬럼)
-    @Column(name = "default_flag",
-    columnDefinition = "TINYINT GENERATED ALWAYS AS (CASE WHEN is_default THEN 1 ELSE NULL END) VIRTUAL")
+    @Column(name = "default_flag")
     private Integer defaultFlag;
 
-    void setMember(Member m){this.member = m;}
+    void setMember(Member m) {
+        this.member = m;
+    }
 
-
+    @PrePersist
+    @PreUpdate
+    private void syncDefaultFlag() {
+        this.defaultFlag = this.isDefault ? 1 : null;
+    }
 }

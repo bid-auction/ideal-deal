@@ -2,7 +2,6 @@ package com.auction.bid.domain.bid;
 
 import com.auction.bid.domain.auction.Auction;
 import com.auction.bid.domain.member.Member;
-import com.auction.bid.domain.product.Product;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,10 +19,6 @@ import java.util.List;
 @NoArgsConstructor
 public class BidDto {
 
-    // productId가 있는 부분들을 auctionId로 수정해야한다.
-    // 하지만 productId가 속해있는 메소드들이 사용되어지는 곳들이 있다.
-    // 이 문제를 해결해야한다.
-    // emptyDtoList(), BidDtoBuilder()등
     private Long auctionId;
     private Long memberId;
     private String nickname;
@@ -41,7 +36,6 @@ public class BidDto {
     }
 
     public static Bid toBidEntity(BidDto bidDto, Member member, Auction auction) {
-
         return Bid.builder()
                 .member(member)
                 .auction(auction)
@@ -52,17 +46,20 @@ public class BidDto {
 
     public static List<BidDto> convertToBidDtoList(List<BidDto> bidDtoList) {
         List<BidDto> resultList = new ArrayList<>();
+        if (bidDtoList == null) {
+            return resultList;
+        }
 
         for (Object bidData : bidDtoList) {
             LinkedHashMap<String, Object> bidMap = (LinkedHashMap<String, Object>) bidData;
 
-            Long productId = ((Integer) bidMap.get("productId")).longValue();
+            Long auctionId = ((Integer) bidMap.get("auctionId")).longValue();
             Long memberId = ((Integer) bidMap.get("memberId")).longValue();
             String nickname = (String) bidMap.get("nickname");
             Long bidAmount = ((Integer) bidMap.get("bidAmount")).longValue();
             LocalDateTime bidTime = formatTime((ArrayList<Integer>) bidMap.get("bidTime"));
 
-            resultList.add(bidDtoBuild(productId, memberId, nickname, bidAmount, bidTime));
+            resultList.add(bidDtoBuild(auctionId, memberId, nickname, bidAmount, bidTime));
         }
 
         return resultList;
@@ -70,20 +67,19 @@ public class BidDto {
 
     private static LocalDateTime formatTime(ArrayList<Integer> bidTimeList) {
         String bidTimeStr = String.format("%04d-%02d-%02d %02d:%02d:%02d.%03d",
-                bidTimeList.get(0),   // year
-                bidTimeList.get(1),   // month
-                bidTimeList.get(2),   // day
-                bidTimeList.get(3),   // hour
-                bidTimeList.get(4),   // minute
-                bidTimeList.get(5),   // second
-                bidTimeList.get(6));  // millisecond
+                bidTimeList.get(0),
+                bidTimeList.get(1),
+                bidTimeList.get(2),
+                bidTimeList.get(3),
+                bidTimeList.get(4),
+                bidTimeList.get(5),
+                bidTimeList.get(6));
 
         if (bidTimeStr.length() > 23) {
             bidTimeStr = bidTimeStr.substring(0, 23);
         }
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
-
         return LocalDateTime.parse(bidTimeStr, formatter);
     }
 
@@ -96,6 +92,4 @@ public class BidDto {
                 .bidTime(bidTime)
                 .build();
     }
-
 }
-

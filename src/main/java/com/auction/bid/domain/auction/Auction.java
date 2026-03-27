@@ -13,21 +13,25 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-public class Auction {
+public class Auction extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "auction_id")
     private Long id;
 
+    @Column(name = "auction_winner_price")
     private Long auctionWinnerPrice;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "auction_status")
     private AuctionStatus auctionStatus;
 
-    private LocalDateTime auction_start;
+    @Column(name = "auction_start")
+    private LocalDateTime auctionStart;
 
-    private LocalDateTime auction_end;
+    @Column(name = "auction_end")
+    private LocalDateTime auctionEnd;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
@@ -37,13 +41,29 @@ public class Auction {
     @JoinColumn(name = "product_id")
     private Product product;
 
-    public static Auction fromBid(Member member, Product product, Long finalAmount, AuctionStatus auctionStatus) {
+    public static Auction fromSchedule(Product product, LocalDateTime auctionStart, LocalDateTime auctionEnd) {
+        return Auction.builder()
+                .product(product)
+                .auctionStart(auctionStart)
+                .auctionEnd(auctionEnd)
+                .build();
+    }
+
+    public static Auction fromBid(
+            Member member,
+            Product product,
+            Long finalAmount,
+            AuctionStatus auctionStatus,
+            LocalDateTime auctionStart,
+            LocalDateTime auctionEnd
+    ) {
         return Auction.builder()
                 .member(member)
                 .product(product)
                 .auctionWinnerPrice(finalAmount)
                 .auctionStatus(auctionStatus)
+                .auctionStart(auctionStart)
+                .auctionEnd(auctionEnd)
                 .build();
     }
-
 }
